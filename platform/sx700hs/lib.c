@@ -50,7 +50,7 @@ void shutdown_soft() {
 }
 
 int get_flash_params_count(void) {
-    return 0xe5; // @fc066f98 GetParameterData
+    return 0xa6; // @fc0bbe8a GetParameterData FFTM
 }
 
 void JogDial_CW(void) {

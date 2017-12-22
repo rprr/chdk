@@ -49,7 +49,7 @@
     #define CAM_DRYOS                           1
     #define CAM_DRYOS_2_3_R39                   1
     #define CAM_DRYOS_2_3_R47                   1
-    #define CAM_DRYOS_2_3_R55                   1
+//    #define CAM_DRYOS_2_3_R55                   1
     #define CAM_PROPSET                         8
 
     #define CAM_RAW_ROWPIX                      5344

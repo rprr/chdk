@@ -194,7 +194,7 @@ void __attribute__((naked,noinline)) boot() {
 
 /*************************************************************/
 void __attribute__((naked,noinline)) CreateTask_my() {
-//    *(int*)0xd20b0884 = 0x4d0002;
+//    *(int*)0xd20b0994 = 0x4d0002;
 asm volatile (
 "    push   {r0}\n"
 //R3 = Pointer to task function to create
@@ -299,7 +299,8 @@ void __attribute__((naked,noinline)) sub_fc05d050_my() {
 "    mov.w   r0, #0x80000\n"
 "    str     r0, [r1]\n"
 "    ldr     r1, =0x00008078\n"
-"    ldr     r0, =0x42a41000\n"
+//"    ldr     r0, =0x42a41000\n" // Typo?
+"    ldr     r0, =0x42a21000\n"
 "    str     r0, [r1]\n"
 "    ldr     r1, =0x0000807c\n"
 "    ldr     r0, =0x42a23000\n"

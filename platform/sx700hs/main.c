@@ -10,7 +10,7 @@ extern void boot();
 
 void startup() {
     long *bss = &link_bss_start;
-//    *(int*)0xd20b0884 = 0x4d0002;
+//    *(int*)0xd20b0994 = 0x4d0002;
 
     // sanity check
     if ((long)&link_bss_end > (MEMISOSTART + MEMISOSIZE)) {
@@ -20,7 +20,7 @@ void startup() {
     // initialize .bss senment
     while (bss<&link_bss_end)
         *bss++ = 0;
-//    *(int*)0xd20b0884 = 0x4d0002;
+//    *(int*)0xd20b0994 = 0x4d0002;
     boot();
 }
 int screen_opened(void) {

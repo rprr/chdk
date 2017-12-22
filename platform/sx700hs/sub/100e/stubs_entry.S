@@ -118,11 +118,7 @@ DEF(_nrflag                           ,0x0001b8e4) // (0x1b8e0+0x4) Found @0xfc3
 DEF(active_bitmap_buffer              ,0x0000c784) // (0xc754+0x30) Found @0xfc30d300
 DEF_CONST(uiprop_count                      ,0x0000009d) // Found @0xfc0bb660
 
-//NHSTUB(Feof_Fut                             ,0x00000000) //  0        *** != 0xfc2d7d95
-//NHSTUB(Fflush_Fut                           ,0x00000000) //  0        *** != 0xfc2d7dbd
 //NHSTUB(GetDrive_TotalClusters               ,0x00000000) //  0        *** != 0xfc307985
-//NHSTUB(MakeSDCardBootable                   ,0x00000000) //  0        *** != 0xfc307d93
-//NHSTUB(RenameFile_Fut                       ,0x00000000) //  0        *** != 0xfc2d7b45
 //NHSTUB(SetFileAttributes                    ,0x00000000) //  0        *** != 0xfc308145
 //NHSTUB(SetFileTimeStamp                     ,0x00000000) //  0        *** != 0xfc3080fd
 
@@ -142,6 +138,8 @@ NHSTUB(ExitTask                               ,0x010c5249) //  0
 //NHSTUB(ExpCtrlTool_StartContiAE             ,0x00000000) //  0            == 0x00000000
 //NHSTUB(ExpCtrlTool_StopContiAE              ,0x00000000) //  0            == 0x00000000
 NHSTUB(Fclose_Fut                             ,0xfc2d7c53) //  0
+//NHSTUB(Feof_Fut                             ,0x00000000) //  0            == 0x00000000
+//NHSTUB(Fflush_Fut                           ,0x00000000) //  0            == 0x00000000
 NHSTUB(Fgets_Fut                              ,0xfc2d7d31) //  0
 NHSTUB(Fopen_Fut                              ,0xfc2d7c2b) //  0
 NHSTUB(Fread_Fut                              ,0xfc2d7cc5) //  0
@@ -172,6 +170,7 @@ NHSTUB(LEDDrive                               ,0xfc1b6911) //  0
 NHSTUB(LocalTime                              ,0x010c6281) //  0
 NHSTUB(LockMainPower                          ,0xfc136c6f) //  0
 NHSTUB(MakeDirectory_Fut                      ,0xfc30819b) //  0
+//NHSTUB(MakeSDCardBootable                   ,0x00000000) //  0            == 0x00000000
 NHSTUB(MoveFocusLensToDistance                ,0xfc45d257) //  0
 NHSTUB(MoveIrisWithAv                         ,0xfc40cb75) //  0
 NHSTUB(MoveZoomLensWithPoint                  ,0xfc40d325) //  0
@@ -188,6 +187,7 @@ NHSTUB(Read                                   ,0xfc119b79) //  0
 NHSTUB(ReadFastDir                            ,0xfc0faf71) //  0
 NHSTUB(Rec2PB                                 ,0xfc0cd787) //  0
 //NHSTUB(RefreshPhysicalScreen                ,0x00000000) //  0            == 0x00000000
+//NHSTUB(RenameFile_Fut                       ,0x00000000) //  0            == 0x00000000
 //NHSTUB(Restart                              ,0x00000000) //  0            == 0x00000000
 NHSTUB(ScreenLock                             ,0xfc30d24f) //  0
 NHSTUB(ScreenUnlock                           ,0xfc30d28d) //  0

@@ -13,10 +13,9 @@ void __attribute__((noreturn)) my_restart()
 
     core_copy(src, dst, length);
 
-/* LED Check Done on sx700hs
+/*
     // light up green LED
-    *(int*)0xd20b0994 = 0x4d0002;
-    // LED done
+    *(volatile int*)0xd20b0994 = 0x4d0002;
     // blinker
     while(1) {
         int i;
@@ -34,13 +33,18 @@ void __attribute__((noreturn)) my_restart()
         }
     }
 */
+
+    // on G7X allows boot on short press without fiddling variables in startup code
+    // does not appear to have any effect on sx710
      *(volatile unsigned *)(0x4ffc)=0x12345678;
 
-    asm volatile ( // 
+    asm volatile ( 
     "mov     r1, %1\n"
     "mov     r0, %0\n"
-    "ldr     r2, =0xfc119423\n" // address is OK for 100e sx700hs
-    "blx     r2\n"              // caching related routine called at fw startup
+    "ldr     r2, =0xfc119423\n" // function called in startup after ROM->RAM code copy, sx700 100e
+    "blx     r2\n"
+
+    // start execution at MEMISOSTART in thumb mode
     "mov     r0, %0\n"
     "add     r0, r0, #1\n"
     "bx      r0\n"

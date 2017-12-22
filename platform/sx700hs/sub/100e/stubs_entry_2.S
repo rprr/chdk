@@ -5,16 +5,20 @@
 #define RET1		0xfc020493	// mov r0, #1 ; bx lr
 #define RET0		0xfc020487	// mov r0, #0 ; bx lr
 
-NHSTUB(Feof_Fut,								0xfc2d7d95) // FTM from CreateJumptable, after Fgets and Fseek @ fc45bc5c
-NHSTUB(Fflush_Fut,								0xfc2d7dbd) // FTM Found directly after Feof_Fut in ROM
+//NHSTUB(Feof_Fut,								0xfc2d7d95) // FTM from CreateJumptable, after Fgets and Fseek @ fc45bc5c
+NHSTUB(Feof_Fut,NULL_SUB)
+//NHSTUB(Fflush_Fut,								0xfc2d7dbd) // FTM Found directly after Feof_Fut in ROM
+NHSTUB(Fflush_Fut,NULL_SUB)
 NHSTUB(SetFileTimeStamp,						0xfc3080fd) // FTM from ref to 0x12cea600 @0xfc308110, similar to sx280hs search '^; stat '
 NHSTUB(SetFileAttributes,						0xfc308145) // FTM MakeDirectoryFUT function following SetFileTimeStamp in ROM
 
 // FTM Search for RedEyeController from the end, then search forward for DeleteFile_Fut
-NHSTUB(RenameFile_Fut,							0xfc2d7b45) // Via fc3505e2 similar to g7x fc41fef8, just after ref to DeleteFile_Fut, LDR 
+//NHSTUB(RenameFile_Fut,							0xfc2d7b45) // Via fc3505e2 similar to g7x fc41fef8, just after ref to DeleteFile_Fut, LDR 
+NHSTUB(RenameFile_Fut,NULL_SUB)
 
 // FTM Search for SCRIPT from the end, then search back for b.w
-NHSTUB(MakeSDCardBootable,						0xfc307d93) // in function before ref to "SCRIPT" @0xfc316cf8
+//NHSTUB(MakeSDCardBootable,						0xfc307d93) // in function before ref to "SCRIPT" @0xfc316cf8
+NHSTUB(MakeSDCardBootable,NULL_SUB)
 
 
 //NHSTUB(GetFocusLensSubjectDistanceFromLens,		0xfc3281bb) // call at 0xfc2375c6 via SetISFocusLensDistance_FW -> 0xfc2375c4 //xfound
