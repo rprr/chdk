@@ -67,7 +67,7 @@
     #undef  CAM_CHDK_HAS_EXT_VIDEO_MENU
     #undef  CAM_VIDEO_CONTROL
 
-//    #define CAM_HAS_JOGDIAL                     1
+    //#define CAM_HAS_JOGDIAL                     1
 
 #undef  CAM_UNCACHED_BIT
 #define CAM_UNCACHED_BIT  0x40000000 // Found @0xfc148c98

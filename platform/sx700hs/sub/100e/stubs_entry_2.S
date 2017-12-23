@@ -5,57 +5,58 @@
 #define RET1		0xfc020493	// mov r0, #1 ; bx lr
 #define RET0		0xfc020487	// mov r0, #0 ; bx lr
 
-//NHSTUB(Feof_Fut,								0xfc2d7d95) // FTM from CreateJumptable, after Fgets and Fseek @ fc45bc5c
-NHSTUB(Feof_Fut,NULL_SUB)
-//NHSTUB(Fflush_Fut,								0xfc2d7dbd) // FTM Found directly after Feof_Fut in ROM
-NHSTUB(Fflush_Fut,NULL_SUB)
+NHSTUB(Feof_Fut,								0xfc2d7d95) // FTM from CreateJumptable, after Fgets and Fseek @ fc45bc5c
+//NHSTUB(Feof_Fut,NULL_SUB)
+NHSTUB(Fflush_Fut,								0xfc2d7dbd) // FTM Found directly after Feof_Fut in ROM
+//NHSTUB(Fflush_Fut,NULL_SUB)
 NHSTUB(SetFileTimeStamp,						0xfc3080fd) // FTM from ref to 0x12cea600 @0xfc308110, similar to sx280hs search '^; stat '
 NHSTUB(SetFileAttributes,						0xfc308145) // FTM MakeDirectoryFUT function following SetFileTimeStamp in ROM
 
 // FTM Search for RedEyeController from the end, then search forward for DeleteFile_Fut
-//NHSTUB(RenameFile_Fut,							0xfc2d7b45) // Via fc3505e2 similar to g7x fc41fef8, just after ref to DeleteFile_Fut, LDR 
-NHSTUB(RenameFile_Fut,NULL_SUB)
+NHSTUB(RenameFile_Fut,							0xfc2d7b45) // Via fc3505e2 similar to g7x fc41fef8, just after ref to DeleteFile_Fut, LDR 
+//NHSTUB(RenameFile_Fut,NULL_SUB)
 
 // FTM Search for SCRIPT from the end, then search back for b.w
-//NHSTUB(MakeSDCardBootable,						0xfc307d93) // in function before ref to "SCRIPT" @0xfc316cf8
-NHSTUB(MakeSDCardBootable,NULL_SUB)
+NHSTUB(MakeSDCardBootable,						0xfc307d93) // in function before ref to "SCRIPT" @0xfc316cf8
+//NHSTUB(MakeSDCardBootable,NULL_SUB)
 
 
-//NHSTUB(GetFocusLensSubjectDistanceFromLens,		0xfc3281bb) // call at 0xfc2375c6 via SetISFocusLensDistance_FW -> 0xfc2375c4 //xfound
-NHSTUB(GetFocusLensSubjectDistanceFromLens,		NULL_SUB) 
+NHSTUB(GetFocusLensSubjectDistanceFromLens,		0xfc2dcf41) // call at 0xfc2bd058 via SetISFocusLensDistance_FW -> 0xfc2bd056 //FTM found
+//NHSTUB(GetFocusLensSubjectDistanceFromLens,		NULL_SUB) 
 
-// based on ref to fc31152e (ref "%s/%3d%s") -> sub_fc16ca2a, which refs  "___%02d" and "_%02d%02d"
-//NHSTUB(GetImageFolder,							0xfc310b09) // xfound
+// FTM sx700hs based on ref to fc2e117c (ref "%s/%3d%s") -> sub_fc3e690e, which refs  "___%02d" and "_%02d%02d"
+//NHSTUB(GetImageFolder,							0xfc2e07d9) // FTM found
 NHSTUB(GetImageFolder,NULL_SUB)
 
-//NHSTUB(apex2us,									0xfc1c8c83) // instructions around fc1c8cc0 similar to g7x fc3826c4
-NHSTUB(apex2us,NULL_SUB)
+NHSTUB(apex2us,									0xfc313637) // FTM Shutter.c asserts @ fc1495ca -> fc149620 instructions similar to g7x fc3826c4
+//NHSTUB(apex2us,NULL_SUB)
 
 NHSTUB(GetDrive_TotalClusters,					0xfc307985) // FTM found function immediately before GetDrive_FreeClusters in ROM
 
-//NHSTUB(LogCameraEvent,							0xfc2f2a0f) // debugging, from func csv //xfound
-NHSTUB(LogCameraEvent,NULL_SUB)
+NHSTUB(LogCameraEvent,							0xfc306b6f) // FTM found debugging, from func csv 
+//NHSTUB(LogCameraEvent,NULL_SUB)
 
-//NHSTUB(CancelHPTimer,							0xfc126b7d) // At fc0f20c8, following LcdSequence, TakeSemaphoreStrictly calls similar to g7x fc0cd6b0 // xfound
-NHSTUB(CancelHPTimer,NULL_SUB)
+NHSTUB(CancelHPTimer,							0xfc1360f5) // FTM At fc0e3f42, following LcdSequence, TakeSemaphoreStrictly calls similar to g7x fc0cd6b0 
+//NHSTUB(CancelHPTimer,NULL_SUB)
 
-//NHSTUB(get_dial_hw_position,					0xfc110d61) // kbd_p1_f_cont->fc086ab4->fc08b5cc, 4 for jogdial // xfound
-NHSTUB(get_dial_hw_position,NULL_SUB)
+NHSTUB(get_dial_hw_position,					0xfc364be9) // FTM kbd_p1_f_cont->fc06e0ce->fc06be36, 4 for jogdial 
+//NHSTUB(get_dial_hw_position,NULL_SUB)
 
 //NHSTUB(PT_PlaySound,							0xfc3061c1) // via call from fc34f924 to fc3505e2, similar to g7x fc41fef8
+//NHSTUB(PT_PlaySound, NULL_SUB)
 
 // required because DryOS >=54 functions assert on unitialized event flag, sem etc 
 // see https://chdk.setepontos.com/index.php?topic=12516.0
-//NHSTUB(init_focus_eventflag,	0xfc54dd2b) // InitializeAdjustmentSystem->fc542300->fc54dd2a event flag matches MoveFocusLensToDistance // xfound
-NHSTUB(init_focus_eventflag, NULL_SUB)
+NHSTUB(init_focus_eventflag,	0xfc45d486) // FTM InitializeAdjustmentSystem->fc40e0e4->fc45d486 event flag matches MoveFocusLensToDistance 
+//NHSTUB(init_focus_eventflag, NULL_SUB)
 
-//NHSTUB(init_nd_eventflag,		0xfc54de35) // InitializeAdjustmentSystem->fc542300->fc54de34 event flag matches PutInNdFilter // xfound
-NHSTUB(init_nd_eventflag,NULL_SUB)
+NHSTUB(init_nd_eventflag,		0xfc45d591) // FTM InitializeAdjustmentSystem->fc542300->fc45d590 event flag matches PutInNdFilter 
+//NHSTUB(init_nd_eventflag,NULL_SUB)
 
 NHSTUB(CreateBinarySemaphoreStrictly,           0x010c5b6b) // from csv // FTM
 
-// via func fc07b6ba hooked in preshoot case, similar to g7x
-NHSTUB(captseq_raw_addr_init,					0xfc0821d3)
+// FTM (via sx60hs) via func fc07b6ba hooked in preshoot case, similar to g7x
+NHSTUB(captseq_raw_addr_init,					0xfc12fedf)
 
 
 // not implemented

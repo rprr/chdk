@@ -1,48 +1,51 @@
 #include "lolevel.h"
 #include "platform.h"
 #include "core.h"
-#include "conf.h"
-#define NR_AUTO (0) //this camera needs it to be set back to zero
-static long *nrflag = (long*)0x1e858;
-extern int active_raw_buffer;
+
 // debug
+#define CAPTSEQ_DEBUG_LOG 1
 extern void _LogCameraEvent(int id,const char *fmt,...);
+
+#define USE_STUBS_NRFLAG 1
+#define NR_AUTO (-1) // default value if NRTBL.SetDarkSubType not used is -1 (0 probalby works the same), set to enable auto
+
+#ifdef CAPTSEQ_DEBUG_LOG
+//extern int active_raw_buffer;
 
 extern char *hook_raw_image_addr(void);
 
 void log_capt_seq(int m)
 {
-    _LogCameraEvent(0x60,"cs m:%d arb:%d rb:0x%08x i:%04d",
+    _LogCameraEvent(0x60,"cs m:%d rb:0x%08x i:%04d",
                     m,
-                    active_raw_buffer,
                     hook_raw_image_addr(),
                     get_exposure_counter());
 }
-
 void log_capt_seq2(int m)
 {
-    _LogCameraEvent(0x60,"cs end m:%d arb:%d rb:0x%08x i:%04d",
+    _LogCameraEvent(0x60,"cs end m:%d rb:0x%08x i:%04d",
                     m,
-                    active_raw_buffer,
                     hook_raw_image_addr(),
                     get_exposure_counter());
 }
 void log_capt_seq_override(void)
 {
-    _LogCameraEvent(0x60,"cs override arb:%d rb:0x%08x i:%04d",
-                    active_raw_buffer,
+    _LogCameraEvent(0x60,"cs override rb:0x%08x i:%04d",
                     hook_raw_image_addr(),
                     get_exposure_counter());
 }
-
+#endif
 
 #include "../../../generic/capt_seq.c"
-extern int _captseq_raw_addr_init(int raw_index, char **ptr) ;
+
+// first paramter matches active_raw_buffer
+// second is pointer to structure
+extern int _captseq_raw_addr_init(int raw_index, char **ptr);
 char *current_raw_addr;
 
 void captseq_raw_addr_init_my(int raw_index,char **ptr) {
     _captseq_raw_addr_init(raw_index,ptr);
-    current_raw_addr=*(ptr + 0x5c/4); // fc154c5a: 65e0  str   r0, [r4, #92]
+    current_raw_addr=*(ptr + 0x5c/4); // @0xfc082212, ptr+0x5c
 #ifdef CAPTSEQ_DEBUG_LOG
     _LogCameraEvent(0x60,"rawinit i:0x%x p:0x%x v:0x%x",raw_index,ptr,current_raw_addr);
 #endif
@@ -51,1019 +54,1000 @@ void captseq_raw_addr_init_my(int raw_index,char **ptr) {
 void clear_current_raw_addr(void) {
     current_raw_addr=NULL;
 }
-//-s=task_CaptSeq -c=117 -f=chdk
-// task_CaptSeq 0xfc15275f
+
+// -f=chdk -s=task_CaptSeq -c=172
+// task_CaptSeq 0xfc0646b3
 void __attribute__((naked,noinline)) capt_seq_task() {
     asm volatile (
 "    push    {r3, r4, r5, r6, r7, lr}\n"
-"    ldr     r4, =0x0003c478\n"
+"    ldr     r4, =0x00039e5c\n"
 "    movs    r6, #0\n"
-"    ldr     r5, =0x0000ba2c\n"
-"loc_fc152766:\n" 
+"    ldr     r5, =0x0000ba40\n"
+"loc_fc0646ba:\n"
 "    movs    r2, #0\n"
 "    mov     r1, sp\n"
 "    ldr     r0, [r5, #8]\n"
-"    blx     sub_fc2cf348\n" // j_ReceiveMessageQueue
+"    blx     sub_fc2c7ca8\n" // j_ReceiveMessageQueue
 "    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc152788\n"
-"    movw    r2, #0x448\n"
-"    ldr     r1, =0xfc152410\n" //  *"SsShootTask.c"
+"    beq     loc_fc0646dc\n"
+"    movw    r2, #0x44e\n"
+"    ldr     r1, =0xfc064364\n" //  *"SsShootTask.c"
 "    movs    r0, #0\n"
-"    blx     sub_fc2cf408\n" // j_DebugAssert
-"    blx     sub_fc2cf358\n"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"    blx     sub_fc2c7d00\n" // -> ExitTask
 "    pop     {r3, r4, r5, r6, r7, pc}\n"
-"loc_fc152788:\n"
+"loc_fc0646dc:\n"
 "    ldr     r0, [sp]\n"
 "    ldr     r0, [r0]\n"
 "    cmp     r0, #1\n"
-"    beq     loc_fc1527a0\n"
+"    beq     loc_fc0646f4\n"
 "    cmp     r0, #0x29\n"
-"    beq     loc_fc1527a0\n"
-"    cmp     r0, #0x1d\n"
-"    beq     loc_fc1527a0\n"
+"    beq     loc_fc0646f4\n"
+"    cmp     r0, #0x1e\n"
+"    beq     loc_fc0646f4\n"
 "    cmp     r0, #0x21\n"
-"    beq     loc_fc1527a0\n"
-"    bl      sub_fc1dd978\n"
-"loc_fc1527a0:\n"
+"    beq     loc_fc0646f4\n"
+"    bl      sub_fc080fbc\n"
+"loc_fc0646f4:\n"
+#ifdef CAPTSEQ_DEBUG_LOG
+// debug message
+"ldr     r0, [sp]\n"
+"ldr     r0, [r0]\n"
+"bl log_capt_seq\n"
+#endif
 "    ldr     r0, [sp]\n"
 "    ldr     r1, [r0]\n"
 "    cmp     r1, #0x2b\n"
-"    bhs     loc_fc152888\n"
+"    bhs     loc_fc0647b6\n"
 "    tbb     [pc, r1]\n" // (jumptable r1 43 elements)
-"branchtable_fc1527ac:\n"
-"    .byte((loc_fc1527d8 - branchtable_fc1527ac) / 2)\n" // (case 0)
-"    .byte((loc_fc1527f0 - branchtable_fc1527ac) / 2)\n" // (case 1)
-"    .byte((loc_fc1527f8 - branchtable_fc1527ac) / 2)\n" // (case 2)
-"    .byte((loc_fc152806 - branchtable_fc1527ac) / 2)\n" // (case 3)
-"    .byte((loc_fc152800 - branchtable_fc1527ac) / 2)\n" // (case 4)
-"    .byte((loc_fc152812 - branchtable_fc1527ac) / 2)\n" // (case 5)
-"    .byte((loc_fc152818 - branchtable_fc1527ac) / 2)\n" // (case 6)
-"    .byte((loc_fc15281e - branchtable_fc1527ac) / 2)\n" // (case 7)
-"    .byte((loc_fc152826 - branchtable_fc1527ac) / 2)\n" // (case 8)
-"    .byte((loc_fc152866 - branchtable_fc1527ac) / 2)\n" // (case 9)
-"    .byte((loc_fc152830 - branchtable_fc1527ac) / 2)\n" // (case 10)
-"    .byte((loc_fc152838 - branchtable_fc1527ac) / 2)\n" // (case 11)
-"    .byte((loc_fc15284c - branchtable_fc1527ac) / 2)\n" // (case 12)
-"    .byte((loc_fc152854 - branchtable_fc1527ac) / 2)\n" // (case 13)
-"    .byte((loc_fc15285a - branchtable_fc1527ac) / 2)\n" // (case 14)
-"    .byte((loc_fc152860 - branchtable_fc1527ac) / 2)\n" // (case 15)
-"    .byte((loc_fc152870 - branchtable_fc1527ac) / 2)\n" // (case 16)
-"    .byte((loc_fc152876 - branchtable_fc1527ac) / 2)\n" // (case 17)
-"    .byte((loc_fc15287c - branchtable_fc1527ac) / 2)\n" // (case 18)
-"    .byte((loc_fc152882 - branchtable_fc1527ac) / 2)\n" // (case 19)
-"    .byte((loc_fc15288a - branchtable_fc1527ac) / 2)\n" // (case 20)
-"    .byte((loc_fc15288e - branchtable_fc1527ac) / 2)\n" // (case 21)
-"    .byte((loc_fc152894 - branchtable_fc1527ac) / 2)\n" // (case 22)
-"    .byte((loc_fc15289a - branchtable_fc1527ac) / 2)\n" // (case 23)
-"    .byte((loc_fc1528a0 - branchtable_fc1527ac) / 2)\n" // (case 24)
-"    .byte((loc_fc1528a6 - branchtable_fc1527ac) / 2)\n" // (case 25)
-"    .byte((loc_fc1528ac - branchtable_fc1527ac) / 2)\n" // (case 26)
-"    .byte((loc_fc1528b4 - branchtable_fc1527ac) / 2)\n" // (case 27)
-"    .byte((loc_fc1528ba - branchtable_fc1527ac) / 2)\n" // (case 28)
-"    .byte((loc_fc1528be - branchtable_fc1527ac) / 2)\n" // (case 29)
-"    .byte((loc_fc1528c6 - branchtable_fc1527ac) / 2)\n" // (case 30)
-"    .byte((loc_fc1528cc - branchtable_fc1527ac) / 2)\n" // (case 31)
-"    .byte((loc_fc1528f6 - branchtable_fc1527ac) / 2)\n" // (case 32)
-"    .byte((loc_fc1528fc - branchtable_fc1527ac) / 2)\n" // (case 33)
-"    .byte((loc_fc152902 - branchtable_fc1527ac) / 2)\n" // (case 34)
-"    .byte((loc_fc152908 - branchtable_fc1527ac) / 2)\n" // (case 35)
-"    .byte((loc_fc15290e - branchtable_fc1527ac) / 2)\n" // (case 36)
-"    .byte((loc_fc152914 - branchtable_fc1527ac) / 2)\n" // (case 37)
-"    .byte((loc_fc15291c - branchtable_fc1527ac) / 2)\n" // (case 38)
-"    .byte((loc_fc152922 - branchtable_fc1527ac) / 2)\n" // (case 39)
-"    .byte((loc_fc152946 - branchtable_fc1527ac) / 2)\n" // (case 40)
-"    .byte((loc_fc15294c - branchtable_fc1527ac) / 2)\n" // (case 41)
-"    .byte((loc_fc152966 - branchtable_fc1527ac) / 2)\n" // (case 42)
+"branchtable_fc064700:\n"
+"    .byte((loc_fc06472c - branchtable_fc064700) / 2)\n" // (case 0)
+"    .byte((loc_fc064742 - branchtable_fc064700) / 2)\n" // (case 1)
+"    .byte((loc_fc06474a - branchtable_fc064700) / 2)\n" // (case 2)
+"    .byte((loc_fc064758 - branchtable_fc064700) / 2)\n" // (case 3)
+"    .byte((loc_fc064752 - branchtable_fc064700) / 2)\n" // (case 4)
+"    .byte((loc_fc064762 - branchtable_fc064700) / 2)\n" // (case 5)
+"    .byte((loc_fc064768 - branchtable_fc064700) / 2)\n" // (case 6)
+"    .byte((loc_fc06476e - branchtable_fc064700) / 2)\n" // (case 7)
+"    .byte((loc_fc064776 - branchtable_fc064700) / 2)\n" // (case 8)
+"    .byte((loc_fc0647a8 - branchtable_fc064700) / 2)\n" // (case 9)
+"    .byte((loc_fc064780 - branchtable_fc064700) / 2)\n" // (case 10)
+"    .byte((loc_fc064788 - branchtable_fc064700) / 2)\n" // (case 11)
+"    .byte((loc_fc06478e - branchtable_fc064700) / 2)\n" // (case 12)
+"    .byte((loc_fc064796 - branchtable_fc064700) / 2)\n" // (case 13)
+"    .byte((loc_fc06479c - branchtable_fc064700) / 2)\n" // (case 14)
+"    .byte((loc_fc0647a2 - branchtable_fc064700) / 2)\n" // (case 15)
+"    .byte((loc_fc0647b0 - branchtable_fc064700) / 2)\n" // (case 16)
+"    .byte((loc_fc0647c4 - branchtable_fc064700) / 2)\n" // (case 17)
+"    .byte((loc_fc0647ca - branchtable_fc064700) / 2)\n" // (case 18)
+"    .byte((loc_fc0647d0 - branchtable_fc064700) / 2)\n" // (case 19)
+"    .byte((loc_fc0647d6 - branchtable_fc064700) / 2)\n" // (case 20)
+"    .byte((loc_fc0647dc - branchtable_fc064700) / 2)\n" // (case 21)
+"    .byte((loc_fc0647e0 - branchtable_fc064700) / 2)\n" // (case 22)
+"    .byte((loc_fc0647e6 - branchtable_fc064700) / 2)\n" // (case 23)
+"    .byte((loc_fc0647ec - branchtable_fc064700) / 2)\n" // (case 24)
+"    .byte((loc_fc0647f2 - branchtable_fc064700) / 2)\n" // (case 25)
+"    .byte((loc_fc0647f8 - branchtable_fc064700) / 2)\n" // (case 26)
+"    .byte((loc_fc0647fe - branchtable_fc064700) / 2)\n" // (case 27)
+"    .byte((loc_fc064806 - branchtable_fc064700) / 2)\n" // (case 28)
+"    .byte((loc_fc06480c - branchtable_fc064700) / 2)\n" // (case 29)
+"    .byte((loc_fc064810 - branchtable_fc064700) / 2)\n" // (case 30)
+"    .byte((loc_fc064818 - branchtable_fc064700) / 2)\n" // (case 31)
+"    .byte((loc_fc06481e - branchtable_fc064700) / 2)\n" // (case 32)
+"    .byte((loc_fc064824 - branchtable_fc064700) / 2)\n" // (case 33)
+"    .byte((loc_fc06482a - branchtable_fc064700) / 2)\n" // (case 34)
+"    .byte((loc_fc064830 - branchtable_fc064700) / 2)\n" // (case 35)
+"    .byte((loc_fc064836 - branchtable_fc064700) / 2)\n" // (case 36)
+"    .byte((loc_fc06483c - branchtable_fc064700) / 2)\n" // (case 37)
+"    .byte((loc_fc064844 - branchtable_fc064700) / 2)\n" // (case 38)
+"    .byte((loc_fc06484a - branchtable_fc064700) / 2)\n" // (case 39)
+"    .byte((loc_fc06486e - branchtable_fc064700) / 2)\n" // (case 40)
+"    .byte((loc_fc064874 - branchtable_fc064700) / 2)\n" // (case 41)
+"    .byte((loc_fc06488e - branchtable_fc064700) / 2)\n" // (case 42)
 ".align 1\n"
-"loc_fc1527d8:\n" // case 0: preshoot, quick press shoot
+"loc_fc06472c:\n"  // case 0: preshoot, quick press shoot
 "    ldr     r0, [r0, #0xc]\n"
-"    uxtb    r0, r0\n"
-"    bl      sub_fc152cfa\n"
+"    bl      sub_fc073cbc\n"
 #ifdef CAPTSEQ_DEBUG_LOG
 "bl log_capt_seq_override\n"
 #endif
 "    BL      clear_current_raw_addr\n" // +
-"    BL      shooting_expo_param_override\n" //sx280
-"    bl      sub_fc150454\n"
+"    BL      shooting_expo_param_override\n" // +
+"    bl      sub_fc079112\n"
 "    ldr     r0, [r4, #0x28]\n"
 "    cmp     r0, #0\n"
-"    beq     loc_fc1527ee\n"
-//"    bl      sub_fc1dcaa8\n" //may need _my routine sx280
-"    bl      sub_fc1dcaa8_my\n"
-"loc_fc1527ee:\n"
-"    b       loc_fc152966\n"
-"loc_fc1527f0:\n"
-"    ldr     r0, [r0, #0x10]\n" //case 1 normal shoot
-//"    bl      sub_fc1dc8d2\n" //my need _my routinej
-"    bl      sub_fc1dc8d2_my\n"
-"    b       loc_fc152966\n"
-"loc_fc1527f8:\n"
-"    movs    r0, #1\n"
-"    bl      sub_fc152ff4\n"
-"    b       loc_fc152966\n"
-"loc_fc152800:\n"
-"    bl      sub_fc152a72\n"
-"    b       loc_fc15280e\n"
-"loc_fc152806:\n"
-"    ldr     r0, [r0, #0xc]\n"
-"    uxtb    r0, r0\n"
-"    bl      sub_fc152ce2\n"
-"loc_fc15280e:\n"
-"    str     r6, [r4, #0x28]\n"
-"    b       loc_fc152966\n"
-"loc_fc152812:\n"
-"    bl      sub_fc152ce8\n"
-"    b       loc_fc152966\n"
-"loc_fc152818:\n"
-"    bl      sub_fc152ef0\n"
-"    b       loc_fc15282a\n"
-"loc_fc15281e:\n"
+"    beq     loc_fc064740\n"
+"    bl      sub_fc07b6ba_my\n" // quick press
+"loc_fc064740:\n"
+"    b       loc_fc06488e\n"
+"loc_fc064742:\n" // case 1: normal shoot
 "    ldr     r0, [r0, #0x10]\n"
-"    bl      sub_fc1dcb50\n"
-"    b       loc_fc152966\n"
-"loc_fc152826:\n"
-"    bl      sub_fc152f7a\n"
-"loc_fc15282a:\n"
-"    bl      sub_fc150454\n"
-"    b       loc_fc152966\n"
-"loc_fc152830:\n"
-"    ldr     r0, [r4, #0x54]\n"
-"    bl      sub_fc153580\n"
-"    b       loc_fc152966\n"
-"loc_fc152838:\n"
-"    bl      sub_fc15380c\n"
-"    b       loc_fc152966\n"
-".ltorg\n"
-/*
-"    movs    r0, r0\n"
-"    stm     r6!, {r2, r4, r5, r6}\n"
-"    movs    r3, r0\n"
-"    stm     r4!, {r3, r4, r5, r6}\n"
-"    movs    r3, r0\n"
-"    rev     r4, r5\n"
-"    movs    r0, r0\n"
-c674 0003
-c478 0003
-ba2c 0000
-*/
-"loc_fc15284c:\n"
-"    ldr     r0, [r0, #0xc]\n"
-"    bl      sub_fc153858\n"
-"    b       loc_fc152966\n"
-"loc_fc152854:\n"
-"    bl      sub_fc1539d2\n"
-"    b       loc_fc152966\n"
-"loc_fc15285a:\n"
-"    bl      sub_fc153da0\n"
-"    b       loc_fc152966\n"
-"loc_fc152860:\n"
-"    bl      sub_fc153e36\n"
-"    b       loc_fc152966\n"
-"loc_fc152866:\n"
-"    ldr     r0, [r0, #0xc]\n"
-"    uxtb    r0, r0\n"
-"    bl      sub_fc152ce2\n"
-"    b       loc_fc152966\n"
-"loc_fc152870:\n"
-"    bl      sub_fc1db418\n"
-"    b       loc_fc152966\n"
-"loc_fc152876:\n"
-"    bl      sub_fc1db600\n"
-"    b       loc_fc152966\n"
-"loc_fc15287c:\n"
-"    bl      sub_fc1db69c\n"
-"    b       loc_fc152966\n"
-"loc_fc152882:\n"
-"    bl      sub_fc1db718\n"
-"    b       loc_fc152966\n"
-"loc_fc152888:\n"
-"    b       loc_fc152958\n"
-"loc_fc15288a:\n"
-"    movs    r0, #0\n"
-"    b       loc_fc1528ae\n"
-"loc_fc15288e:\n"
-"    bl      sub_fc1dbb04\n"
-"    b       loc_fc152966\n"
-"loc_fc152894:\n"
-"    bl      sub_fc1dbb64\n"
-"    b       loc_fc152966\n"
-"loc_fc15289a:\n"
-"    bl      sub_fc1dbb68\n"
-"    b       loc_fc152966\n"
-"loc_fc1528a0:\n"
-"    bl      sub_fc1dbb78\n"
-"    b       loc_fc152966\n"
-"loc_fc1528a6:\n"
-"    bl      sub_fc1dbbf0\n"
-"    b       loc_fc152966\n"
-"loc_fc1528ac:\n"
+"    bl      sub_fc07b4ee_my\n" // regular shoot
+"    b       loc_fc06488e\n"
+"loc_fc06474a:\n"
 "    movs    r0, #1\n"
-"loc_fc1528ae:\n"
-"    bl      sub_fc1db9e4\n"
-"    b       loc_fc152966\n"
-"loc_fc1528b4:\n"
-"    bl      sub_fc153102\n"
-"    b       loc_fc152966\n"
-"loc_fc1528ba:\n"
-"    movs    r0, #0\n"
-"    b       loc_fc1528c0\n"
-"loc_fc1528be:\n"
+"    bl      sub_fc073f74\n"
+"    b       loc_fc06488e\n"
+"loc_fc064752:\n"
+"    bl      sub_fc073a32\n"
+"    b       loc_fc06475e\n"
+"loc_fc064758:\n"
 "    ldr     r0, [r0, #0xc]\n"
-"loc_fc1528c0:\n"
-"    bl      sub_fc153164\n"
-"    b       loc_fc152966\n"
-"loc_fc1528c6:\n"
-"    bl      sub_fc1db8d8\n"
-"    b       loc_fc152966\n"
-"loc_fc1528cc:\n"
-"    ldr     r1, =0x0003c4da\n"
-"    movs    r2, #2\n"
-"    movs    r0, #0x72\n"
-"    bl      _GetPropertyCase\n"
-"    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc1528e8\n"
-"    movw    r2, #0x508\n"
-"    ldr     r1, =0xfc152410\n" //  *"SsShootTask.c"
-"    movs    r0, #0\n"
-"    blx     sub_fc2cf408\n" // j_DebugAssert
-"loc_fc1528e8:\n"
-"    ldrh.w  r0, [r4, #0x62]\n"
-"    cmp     r0, #1\n"
-"    bne     loc_fc152966\n"
-"    bl      sub_fc1db8d2\n"
-"    b       loc_fc152966\n"
-"loc_fc1528f6:\n"
-"    bl      sub_fc1db956\n"
-"    b       loc_fc152966\n"
-"loc_fc1528fc:\n"
-"    bl      sub_fc1dd354\n"
-"    b       loc_fc152966\n"
-"loc_fc152902:\n"
-"    bl      sub_fc150d7a\n"
-"    b       loc_fc152966\n"
-"loc_fc152908:\n"
-"    bl      sub_fc2aa48e\n"
-"    b       loc_fc152966\n"
-"loc_fc15290e:\n"
-"    bl      sub_fc2aa568\n"
-"    b       loc_fc152966\n"
-"loc_fc152914:\n"
+"    bl      sub_fc073ca4\n"
+"loc_fc06475e:\n"
+"    str     r6, [r4, #0x28]\n"
+"    b       loc_fc06488e\n"
+"loc_fc064762:\n"
+"    bl      sub_fc073caa\n"
+"    b       loc_fc06488e\n"
+"loc_fc064768:\n"
+"    bl      sub_fc073e9a\n"
+"    b       loc_fc06477a\n"
+"loc_fc06476e:\n"
+"    ldr     r0, [r0, #0x10]\n"
+"    bl      sub_fc07b766\n"
+"    b       loc_fc06488e\n"
+"loc_fc064776:\n"
+"    bl      sub_fc073efc\n"
+"loc_fc06477a:\n"
+"    bl      sub_fc079112\n"
+"    b       loc_fc06488e\n"
+"loc_fc064780:\n"
+"    ldr     r0, [r4, #0x54]\n"
+"    bl      sub_fc06f596\n"
+"    b       loc_fc06488e\n"
+"loc_fc064788:\n"
+"    bl      sub_fc06f806\n"
+"    b       loc_fc06488e\n"
+"loc_fc06478e:\n"
 "    ldr     r0, [r0, #0xc]\n"
-"    bl      sub_fc1dbcc4\n"
-"    b       loc_fc152966\n"
-"loc_fc15291c:\n"
-"    bl      sub_fc1dbd2c\n"
-"    b       loc_fc152966\n"
-"loc_fc152922:\n"
-"    bl      sub_fc15893e\n"
+"    bl      sub_fc06f852\n"
+"    b       loc_fc06488e\n"
+"loc_fc064796:\n"
+"    bl      sub_fc06f986\n"
+"    b       loc_fc06488e\n"
+"loc_fc06479c:\n"
+"    bl      sub_fc06fd52\n"
+"    b       loc_fc06488e\n"
+"loc_fc0647a2:\n"
+"    bl      sub_fc06fde8\n"
+"    b       loc_fc06488e\n"
+"loc_fc0647a8:\n"
+"    ldr     r0, [r0, #0xc]\n"
+"    bl      sub_fc073ca4\n"
+"    b       loc_fc06488e\n"
+"loc_fc0647b0:\n"
+"    bl      sub_fc071190\n"
+"    b       loc_fc06488e\n"
+"loc_fc0647b6:\n"
+"    b       loc_fc064880\n"
+".ltorg\n" 
+// firmware had literal pool here
+// 0x0003a05c
+// 0x00039e5c
+// 0x0000ba40
+"loc_fc0647c4:\n"
+"    bl      sub_fc071338\n"
+"    b       loc_fc06488e\n"
+"loc_fc0647ca:\n"
+"    bl      sub_fc0713b0\n"
+"    b       loc_fc06488e\n"
+"loc_fc0647d0:\n"
+"    bl      sub_fc07144c\n"
+"    b       loc_fc06488e\n"
+"loc_fc0647d6:\n"
+"    bl      sub_fc0714ee\n"
+"    b       loc_fc06488e\n"
+"loc_fc0647dc:\n"
+"    movs    r0, #0\n"
+"    b       loc_fc064800\n"
+"loc_fc0647e0:\n"
+"    bl      sub_fc071808\n"
+"    b       loc_fc06488e\n"
+"loc_fc0647e6:\n"
+"    bl      sub_fc071868\n"
+"    b       loc_fc06488e\n"
+"loc_fc0647ec:\n"
+"    bl      sub_fc07186c\n"
+"    b       loc_fc06488e\n"
+"loc_fc0647f2:\n"
+"    bl      sub_fc07187c\n"
+"    b       loc_fc06488e\n"
+"loc_fc0647f8:\n"
+"    bl      sub_fc0718f4\n"
+"    b       loc_fc06488e\n"
+"loc_fc0647fe:\n"
+"    movs    r0, #1\n"
+"loc_fc064800:\n"
+"    bl      sub_fc0716e8\n"
+"    b       loc_fc06488e\n"
+"loc_fc064806:\n"
+"    bl      sub_fc074056\n"
+"    b       loc_fc06488e\n"
+"loc_fc06480c:\n"
+"    movs    r0, #0\n"
+"    b       loc_fc064812\n"
+"loc_fc064810:\n"
+"    ldr     r0, [r0, #0xc]\n"
+"loc_fc064812:\n"
+"    bl      sub_fc0740b6\n"
+"    b       loc_fc06488e\n"
+"loc_fc064818:\n"
+"    bl      sub_fc071614\n"
+"    b       loc_fc06488e\n"
+"loc_fc06481e:\n"
+"    bl      sub_fc07167a\n"
+"    b       loc_fc06488e\n"
+"loc_fc064824:\n"
+"    bl      sub_fc07bf10\n"
+"    b       loc_fc06488e\n"
+"loc_fc06482a:\n"
+"    bl      sub_fc079a30\n"
+"    b       loc_fc06488e\n"
+"loc_fc064830:\n"
+"    bl      sub_fc29d326\n"
+"    b       loc_fc06488e\n"
+"loc_fc064836:\n"
+"    bl      sub_fc29d3e0\n"
+"    b       loc_fc06488e\n"
+"loc_fc06483c:\n"
+"    ldr     r0, [r0, #0xc]\n"
+"    bl      sub_fc0719d0\n"
+"    b       loc_fc06488e\n"
+"loc_fc064844:\n"
+"    bl      sub_fc071a38\n"
+"    b       loc_fc06488e\n"
+"loc_fc06484a:\n"
+"    bl      sub_fc0748be\n"
 "    ldrh.w  r0, [r4, #0x1a4]\n"
 "    cmp     r0, #4\n"
-"    beq     loc_fc152938\n"
+"    beq     loc_fc064860\n"
 "    ldrh    r0, [r4]\n"
 "    sub.w   r1, r0, #0x4200\n"
 "    subs    r1, #0x36\n"
-"    bne     loc_fc152966\n"
-"loc_fc152938:\n"
-"    bl      sub_fc2aa568\n"
-"    bl      sub_fc2aaa7e\n"
-"    bl      sub_fc2aa8c6\n"
-"    b       loc_fc152966\n"
-"loc_fc152946:\n"
+"    bne     loc_fc06488e\n"
+"loc_fc064860:\n"
+"    bl      sub_fc29d3e0\n"
+"    bl      sub_fc29d8f6\n"
+"    bl      sub_fc29d73e\n"
+"    b       loc_fc06488e\n"
+"loc_fc06486e:\n"
 "    movs    r2, #0\n"
 "    movs    r1, #0x11\n"
-"    b       loc_fc152950\n"
-"loc_fc15294c:\n"
+"    b       loc_fc064878\n"
+"loc_fc064874:\n"
 "    movs    r2, #0\n"
 "    movs    r1, #0x10\n"
-"loc_fc152950:\n"
+"loc_fc064878:\n"
 "    movs    r0, #0\n"
-"    bl      sub_fc150f62\n"
-"    b       loc_fc152966\n"
-"loc_fc152958:\n"   //near line 308 of g7x
-"    movw    r2, #0x572\n"
-"    ldr     r1, =0xfc152410\n" //  *"SsShootTask.c"
+"    bl      sub_fc079cf0\n"
+"    b       loc_fc06488e\n"
+"loc_fc064880:\n"
+"    movw    r2, #0x57e\n"
+"    ldr     r1, =0xfc064364\n" //  *"SsShootTask.c"
 "    movs    r0, #0\n"
-"    blx     sub_fc2cf408\n" // j_DebugAssert
-"loc_fc152966:\n"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"loc_fc06488e:\n"
 // debug after message handled
+#ifdef CAPTSEQ_DEBUG_LOG
 "ldr     r0, [sp]\n"
 "ldr     r0, [r0]\n"
 "bl log_capt_seq2\n"
-"    BL      capt_seq_hook_set_nr\n" //  dark frame control
+#endif
 "    ldr     r0, [sp]\n"
 "    ldr     r1, [r0, #4]\n"
 "    ldr     r0, [r5, #4]\n"
-"    blx     sub_fc2cf328\n" // j_SetEventFlag
+"    blx     sub_fc2c7cd0\n" // j_SetEventFlag
 "    ldr     r7, [sp]\n"
 "    ldr     r0, [r7, #8]\n"
-"    cbnz    r0, loc_fc152984\n"
-"    movw    r2, #0x128\n"
-"    ldr     r1, =0xfc152410\n" //  *"SsShootTask.c"
+"    cbnz    r0, loc_fc0648ac\n"
+"    movw    r2, #0x12b\n"
+"    ldr     r1, =0xfc064364\n" //  *"SsShootTask.c"
 "    movs    r0, #0\n"
-"    blx     sub_fc2cf408\n" // j_DebugAssert
-"loc_fc152984:\n"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"loc_fc0648ac:\n"
 "    str     r6, [r7, #8]\n"
-"    b       loc_fc152766\n"
-/*"    ldr     r2, =0x0003c2f0\n"
-"    movs    r0, #0\n"
-"    push    {r3, r4, r5, lr}\n"
-"    mov     r1, r0\n"
-*/
+"    b       loc_fc0646ba\n"
 ".ltorg\n"
-   );
+    );
 }
-// -s=0xfc1dcaa9 -c=56 -f=chdk
-void __attribute__((naked,noinline)) sub_fc1dcaa8_my() {
+
+//-f=chdk -s=0xfc07b6bb -c=57 
+void __attribute__((naked,noinline)) sub_fc07b6ba_my() {
     asm volatile (
 "    push    {r3, r4, r5, r6, r7, lr}\n"
-"    bl      sub_fc151ece\n"
+"    bl      sub_fc07fa84\n"
 "    mov     r4, r0\n"
 "    movs    r0, #0xc\n"
-"    bl      sub_fc2d7930\n"
-"    ldr     r6, =0x00014348\n"
+"    bl      sub_fc29dbfc\n"
+"    ldr     r6, =0x00014684\n"
 "    lsls    r0, r0, #0x1f\n"
 "    mov.w   r5, #1\n"
-"    bne     loc_fc1dcb42\n"
+"    bne     loc_fc07b758\n"
 "    movs    r2, #2\n"
 "    mov     r1, sp\n"
-"    movw    r0, #0x10d\n"
-//"    bl      sub_fc321ee0\n"
-"    bl      _GetPropertyCase\n"
+"    movw    r0, #0x110\n"
+"    bl      _GetPropertyCase\n" //  PROPCASE_TV (272)
 "    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc1dcadc\n"
+"    beq     loc_fc07b6ee\n"
 "    movs    r0, #0\n"
-"    movw    r2, #0x16d\n"
-"    ldr     r1, =0xfc1dcc28\n" //  *"SsCaptureCtrl.c"
-"    blx     sub_fc2cf408\n"
-"loc_fc1dcadc:\n"
+"    movw    r2, #0x17d\n"
+"    ldr     r1, =0xfc07b838\n" //  *"SsCaptureCtrl.c"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"loc_fc07b6ee:\n"
 "    ldrsh.w r0, [sp]\n"
-"    bl      sub_fc1377fe\n"
-"    bl      sub_fc1376d6\n"
+"    bl      sub_fc0b2f18\n"
+"    bl      sub_fc0b2d2e\n"
 "    cmp     r0, #1\n"
-"    bls     loc_fc1dcb46\n"
+"    bls     loc_fc07b75c\n"
 "    movs    r0, #0\n"
-"    bl      sub_fc13778e\n"
-"    bl      sub_fc152cee\n"
-"    bl      sub_fc154bcc\n"
+"    bl      sub_fc0b2de6\n"
+"    bl      sub_fc0a8f60\n"
+"    bl      sub_fc073cb0\n"
+"    bl      sub_fc082184\n"
 "    mov     r1, r4\n"
-//"    bl      sub_fc154c1a\n"
+//"    bl      sub_fc0821d2\n"
 "bl captseq_raw_addr_init_my\n"
 "    movs    r2, #4\n"
-"    movw    r0, #0x113\n"
+"    movw    r0, #0x116\n"
 "    add.w   r1, r4, #0x58\n"
-"    bl      _SetPropertyCase\n"
-//"    bl      sub_fc321dae\n"
+"    bl      _SetPropertyCase\n" //  (278)
 "    movs    r2, #4\n"
-"    movs    r0, #0x2d\n"
+"    movs    r0, #0x30\n"
 "    add.w   r1, r4, #0x5c\n"
-"    bl      _SetPropertyCase\n"
-//"    bl      sub_fc321dae\n"
+"    bl      _SetPropertyCase\n" //  (48)
 "    movs    r2, #4\n"
-"    movs    r0, #0x41\n"
+"    movs    r0, #0x44\n"
 "    add.w   r1, r4, #8\n"
-"    bl      _SetPropertyCase\n"
-//"    bl      sub_fc321dae\n"
-"    bl      sub_fc1dd17e\n"
+"    bl      _SetPropertyCase\n" //  (68)
+"    bl      sub_fc080b66\n"
 "    mvn     r1, #0x1000\n"
-"    blx     sub_fc2cf3d8\n" // j_ClearEventFlag
+"    blx     sub_fc2c7dd0\n" // j_ClearEventFlag
 "    mov     r0, r4\n"
-"    bl      sub_fc1dc678\n"
+"    bl      sub_fc07b29a\n"
 "    mov     r0, r4\n"
-//"    bl      sub_fc39ff78\n"
-"    bl      sub_fc39ff78_my\n" // ->
+"    bl      sub_fc083ab0_my\n" // -> remote hook, raw hook
 "    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc1dcb44\n"
-"loc_fc1dcb42:\n"
+"    beq     loc_fc07b75a\n"
+"loc_fc07b758:\n"
 "    str     r5, [r6]\n"
-"loc_fc1dcb44:\n"
-//"    BL      capt_seq_hook_raw_here \n" // + ???
+"loc_fc07b75a:\n"
 "    pop     {r3, r4, r5, r6, r7, pc}\n"
-//sx280 ends here
-"loc_fc1dcb46:\n"
-"    bl      sub_fc150d70\n"
-"    bl      sub_fc2d7968\n"
+"loc_fc07b75c:\n"
+"    bl      sub_fc079a26\n"
+"    bl      sub_fc29dc34\n"
 "    pop     {r3, r4, r5, r6, r7, pc}\n"
 ".ltorg\n"
     );
 }
-//-s=0xfc1dc8d3 -e=0xfc1dc8d3 -f=chdk
-void __attribute__((naked,noinline)) sub_fc1dc8d2_my() {
+
+// -f=chdk -s=0xfc07b4ef -c=173
+void __attribute__((naked,noinline)) sub_fc07b4ee_my() {
     asm volatile (
 "    push    {r2, r3, r4, r5, r6, lr}\n"
-"    ldr     r6, =0x0003c478\n"
+"    ldr     r6, =0x00039e5c\n"
 "    mov     r4, r0\n"
 "    movs    r5, #0\n"
 "    ldr     r0, [r6, #0x28]\n"
-"    cbz     r0, loc_fc1dc8fa\n"
-"    ldr     r0, =0x00014348\n"
+"    cbz     r0, loc_fc07b516\n"
+"    ldr     r0, =0x00014684\n"
 "    ldr     r0, [r0]\n"
-"    cbz     r0, loc_fc1dc8e6\n"
+"    cbz     r0, loc_fc07b502\n"
 "    movs    r5, #0x1d\n"
-"loc_fc1dc8e6:\n"
+"loc_fc07b502:\n"
 "    mov     r2, r4\n"
 "    movs    r1, #2\n"
 "    mov     r0, r5\n"
-"    bl      sub_fc150f62\n"
+"    bl      sub_fc079cf0\n"
 "    mov     r1, r5\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc1dd7d6\n"
-"    b       loc_fc1dcaa2\n"
-"loc_fc1dc8fa:\n"
-"    bl      sub_fc154bcc\n" // gets active raw buffer
+"    bl      sub_fc080e1a\n"
+"    b       loc_fc07b6b4\n"
+"loc_fc07b516:\n"
+"    bl      sub_fc082184\n"
 "    mov     r1, r4\n"
-//"    bl      sub_fc154c1a\n"
+//"    bl      sub_fc0821d2\n"
 "bl captseq_raw_addr_init_my\n"
 "    movs    r2, #4\n"
-"    movw    r0, #0x113\n"
+"    movw    r0, #0x116\n"
 "    add.w   r1, r4, #0x58\n"
-"    bl      _SetPropertyCase\n"
-//"    bl      sub_fc321dae\n"
+"    bl      _SetPropertyCase\n" //  (278)
 "    movs    r2, #4\n"
-"    movs    r0, #0x2d\n"
+"    movs    r0, #0x30\n"
 "    add.w   r1, r4, #0x5c\n"
-"    bl      _SetPropertyCase\n"
-//"    bl      sub_fc321dae\n"
+"    bl      _SetPropertyCase\n" //  (48)
 "    ldr.w   r0, [r6, #0x10c]\n"
-"    cbnz    r0, loc_fc1dc934\n"
+"    cbnz    r0, loc_fc07b550\n"
 "    ldrh.w  r0, [r6, #0x1a2]\n"
 "    cmp     r0, #3\n"
-"    beq     loc_fc1dc93a\n"
+"    beq     loc_fc07b556\n"
 "    ldr     r0, [r4, #8]\n"
 "    cmp     r0, #1\n"
-"    bhi     loc_fc1dc94a\n"
-"    b       loc_fc1dc93a\n"
-"loc_fc1dc934:\n"
+"    bhi     loc_fc07b566\n"
+"    b       loc_fc07b556\n"
+"loc_fc07b550:\n"
 "    ldr     r0, [r4, #0xc]\n"
 "    cmp     r0, #1\n"
-"    bne     loc_fc1dc94a\n"
-"loc_fc1dc93a:\n"
+"    bne     loc_fc07b566\n"
+"loc_fc07b556:\n"
 "    movs    r0, #0xc\n"
-"    bl      sub_fc2d7930\n"
+"    bl      sub_fc29dbfc\n"
 "    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc1dc94a\n"
-"    bl      sub_fc150d70\n"
+"    beq     loc_fc07b566\n"
+"    bl      sub_fc079a26\n"
 "    movs    r5, #1\n"
-"loc_fc1dc94a:\n"
+"loc_fc07b566:\n"
 "    lsls    r0, r5, #0x1f\n"
-"    bne     loc_fc1dca4c\n"
+"    bne     loc_fc07b668\n"
 "    ldr.w   r0, [r6, #0xec]\n"
-"    cbz     r0, loc_fc1dc96e\n"
+"    cbz     r0, loc_fc07b58a\n"
 "    ldrh.w  r0, [r6, #0x1a2]\n"
 "    cmp     r0, #3\n"
-"    beq     loc_fc1dc962\n"
+"    beq     loc_fc07b57e\n"
 "    ldr     r0, [r4, #8]\n"
 "    cmp     r0, #1\n"
-"    bhi     loc_fc1dc9ae\n"
-"loc_fc1dc962:\n"
+"    bhi     loc_fc07b5ca\n"
+"loc_fc07b57e:\n"
 "    ldr.w   r0, [r6, #0x10c]\n"
-"    cbz     r0, loc_fc1dc96e\n"
+"    cbz     r0, loc_fc07b58a\n"
 "    ldr     r0, [r4, #0xc]\n"
 "    cmp     r0, #1\n"
-"    bhi     loc_fc1dc9ae\n"
-"loc_fc1dc96e:\n"
+"    bhi     loc_fc07b5ca\n"
+"loc_fc07b58a:\n"
 "    movs    r2, #2\n"
-"    movw    r0, #0x10d\n"
+"    movw    r0, #0x110\n"
 "    add     r1, sp, #4\n"
-"    bl      _GetPropertyCase\n"
+"    bl      _GetPropertyCase\n" //  PROPCASE_TV (272)
 "    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc1dc988\n"
-"    movs    r2, #0xc9\n"
+"    beq     loc_fc07b5a4\n"
+"    movs    r2, #0xcd\n"
 "    movs    r0, #0\n"
-"    ldr     r1, =0xfc1dcc28\n" //  *"SsCaptureCtrl.c"
-"    blx     sub_fc2cf408\n" //j_DebugAssert
-"loc_fc1dc988:\n"
+"    ldr     r1, =0xfc07b838\n" //  *"SsCaptureCtrl.c"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"loc_fc07b5a4:\n"
 "    ldrsh.w r0, [sp, #4]\n"
-"    bl      sub_fc1377fe\n"
-"    bl      sub_fc1376d6\n"
+"    bl      sub_fc0b2f18\n"
+"    bl      sub_fc0b2d2e\n"
 "    cmp     r0, #1\n"
-"    bls     loc_fc1dc9a0\n"
+"    bls     loc_fc07b5bc\n"
 "    movs    r0, #0\n"
-"    bl      sub_fc13778e\n"
-"    b       loc_fc1dc9ae\n"
-"loc_fc1dc9a0:\n"
-"    bl      sub_fc150d70\n"
-"    bl      sub_fc2d7968\n"
+"    bl      sub_fc0b2de6\n"
+"    b       loc_fc07b5ca\n"
+"loc_fc07b5bc:\n"
+"    bl      sub_fc079a26\n"
+"    bl      sub_fc29dc34\n"
 "    movs    r5, #1\n"
 "    lsls    r0, r5, #0x1f\n"
-"    bne     loc_fc1dca90\n"
-"loc_fc1dc9ae:\n"
+"    bne     loc_fc07b6a2\n"
+"loc_fc07b5ca:\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc1dd39e\n"
+"    bl      sub_fc07bf5a\n"
 "    mov     r5, r0\n"
 "    lsls    r0, r0, #0x1f\n"
-"    bne     loc_fc1dca90\n"
-"    bl      sub_fc1dd17e\n"
+"    bne     loc_fc07b6a2\n"
+"    bl      sub_fc080b66\n"
 "    mvn     r1, #0x1000\n"
-"    blx     sub_fc2cf3d8\n" // j_ClearEventFlag
+"    blx     sub_fc2c7dd0\n" // j_ClearEventFlag
 "    mov     r0, r4\n"
-"    bl      sub_fc39fc56\n"
+"    bl      sub_fc07d3c6\n"
 "    mov     r5, r0\n"
 "    lsls    r0, r0, #0x1f\n"
-"    bne     loc_fc1dca90\n"
-"    bl      sub_fc152cee\n"
+"    bne     loc_fc07b6a2\n"
+"    bl      sub_fc0a8f60\n"
+"    bl      sub_fc073cb0\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc1dc678\n"
+"    bl      sub_fc07b29a\n"
 "    ldr.w   r0, [r6, #0x130]\n"
-"    cbnz    r0, loc_fc1dc9f0\n"
+"    cbnz    r0, loc_fc07b610\n"
 "    ldrh.w  r0, [r6, #0x1a2]\n"
 "    cmp     r0, #3\n"
-"    beq     loc_fc1dc9f0\n"
+"    beq     loc_fc07b610\n"
 "    ldr     r0, [r4, #8]\n"
 "    cmp     r0, #1\n"
-"    bhi     loc_fc1dc9f6\n"
-"loc_fc1dc9f0:\n"
+"    bhi     loc_fc07b616\n"
+"loc_fc07b610:\n"
 "    movs    r0, #2\n"
-"    bl      sub_fc15980a\n"
-"loc_fc1dc9f6:\n"
+"    bl      sub_fc074942\n"
+"loc_fc07b616:\n"
 "    ldr.w   r0, [r6, #0xa8]\n"
 "    cmp     r0, #0\n"
-"    beq     loc_fc1dca6c\n"
+"    beq     loc_fc07b68c\n"
 "    ldrh.w  r0, [r6, #0x1a2]\n"
 "    movw    r5, #0x1000\n"
 "    cmp     r0, #3\n"
-"    beq     loc_fc1dca26\n"
+"    beq     loc_fc07b646\n"
 "    ldr     r0, [r4, #8]\n"
 "    cmp     r0, #1\n"
-"    bls     loc_fc1dca26\n"
-"    bl      sub_fc1dd17e\n"
-"    movw    r3, #0x112\n"
+"    bls     loc_fc07b646\n"
+"    bl      sub_fc080b66\n"
+"    movw    r3, #0x119\n"
 "    movw    r2, #0x3a98\n"
 "    mov     r1, r5\n"
 "    str     r3, [sp]\n"
-"    ldr     r3, =0xfc1dcc28\n" //  *"SsCaptureCtrl.c"
-"    bl      sub_fc2d7ae4\n"
-"loc_fc1dca26:\n"
+"    ldr     r3, =0xfc07b838\n" //  *"SsCaptureCtrl.c"
+"    bl      sub_fc29ddac\n"
+"loc_fc07b646:\n"
 "    movs    r2, #4\n"
-"    movw    r0, #0x185\n"
+"    movw    r0, #0x188\n"
 "    add     r1, sp, #4\n"
-"    bl      _GetPropertyCase\n"
+"    bl      _GetPropertyCase\n" //  (392)
 "    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc1dca42\n"
+"    beq     loc_fc07b662\n"
 "    movs    r0, #0\n"
-"    movw    r2, #0x116\n"
-"    ldr     r1, =0xfc1dcc28\n" //  *"SsCaptureCtrl.c"
-"    blx     sub_fc2cf408\n" // j_DebugAssert
-"loc_fc1dca42:\n"
+"    movw    r2, #0x11d\n"
+"    ldr     r1, =0xfc07b838\n" //  *"SsCaptureCtrl.c"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"loc_fc07b662:\n"
 "    ldr     r0, [sp, #4]\n"
-"    cbnz    r0, loc_fc1dca56\n"
-"    bl      sub_fc1dd17e\n"
-"    b       loc_fc1dca4e\n"
-"loc_fc1dca4c:\n"
-"    b       loc_fc1dca90\n"
-"loc_fc1dca4e:\n"
+"    cbnz    r0, loc_fc07b676\n"
+"    b       loc_fc07b66a\n"
+"loc_fc07b668:\n"
+"    b       loc_fc07b6a2\n"
+"loc_fc07b66a:\n"
+"    bl      sub_fc080b66\n"
 "    mov     r1, r5\n"
-"    blx     sub_fc2cf328\n" // j_SetEventFlag
-"    b       loc_fc1dca6c\n"
-"loc_fc1dca56:\n"
-"    bl      sub_fc1dd17e\n"
+"    blx     sub_fc2c7cd0\n" // j_SetEventFlag
+"    b       loc_fc07b68c\n"
+"loc_fc07b676:\n"
+"    bl      sub_fc080b66\n"
 "    mov     r1, r5\n"
-"    blx     sub_fc2cf3d8\n" // j_ClearEventFlag
-"    ldr     r2, =0xfc1dc8c1\n"
+"    blx     sub_fc2c7dd0\n" // j_ClearEventFlag
+"    ldr     r2, =0xfc07b4dd\n"
 "    mov     r3, r5\n"
 "    ldr     r0, [sp, #4]\n"
 "    mov     r1, r2\n"
-"    bl      sub_fc322d70\n"
-"loc_fc1dca6c:\n"
-"    ldr.w   r0, [r6, #0xb0]\n"
-"    cbz     r0, loc_fc1dca7a\n"
-"    mov     r0, r4\n"
-"    bl      sub_fc3a0740\n" // SsHDRCaptureSeq.c
-"    b       loc_fc1dcaa2\n"
-"loc_fc1dca7a:\n"
+"    bl      sub_fc326f00\n"
+"loc_fc07b68c:\n"
 "    ldr.w   r0, [r6, #0xb4]\n"
 "    cmp     r0, #0\n"
 "    mov     r0, r4\n"
-"    beq     loc_fc1dca8a\n"
-"    bl      sub_fc3a03ae\n" // SsGISCaptureSeq.c
-"    b       loc_fc1dcaa2\n"
-"loc_fc1dca8a:\n"
-//"bl sub_fc39ff78\n"
-"    bl      sub_fc39ff78_my\n" // SsStandardCaptureSeq.c hook
-"    b       loc_fc1dcaa2\n"
-"loc_fc1dca90:\n"
+"    beq     loc_fc07b69c\n"
+"    bl      sub_fc083f42\n"
+"    b       loc_fc07b6b4\n"
+"loc_fc07b69c:\n"
+"    bl      sub_fc083ab0_my\n" // -> remote, raw hook etc
+"    b       loc_fc07b6b4\n"
+"loc_fc07b6a2:\n"
 "    movs    r1, #2\n"
 "    mov     r2, r4\n"
 "    mov     r0, r5\n"
-"    bl      sub_fc150f62\n"
+"    bl      sub_fc079cf0\n"
 "    mov     r1, r5\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc1dd90c\n"
-"loc_fc1dcaa2:\n"
+"    bl      sub_fc080f50\n"
+"loc_fc07b6b4:\n"
 "    movs    r0, #0\n"
 "    str     r0, [r6, #0x28]\n"
 "    pop     {r2, r3, r4, r5, r6, pc}\n"
+".ltorg\n"
     );
 }
-// -s=0xfc39ff79 -e=0xfc3a017f -f=chdk
-void __attribute__((naked,noinline)) sub_fc39ff78_my() {
-    asm volatile ( 
-"    push.w  {r2, r3, r4, r5, r6, r7, r8, sb, sl, lr}\n"
-"    ldr     r7, =0x0003c478\n"
+
+#ifdef CAPTSEQ_DEBUG_LOG
+void log_nr_call(void) {
+    _LogCameraEvent(0x60,"nr hook %d",_nrflag);
+}
+void log_remote_hook(void) {
+    _LogCameraEvent(0x60,"remote hook");
+}
+void log_rh(void) {
+    _LogCameraEvent(0x60,"raw hook rb:0x%08x rbc:0x%08x",hook_raw_image_addr(),current_raw_addr);
+}
+#endif
+
+// -f=chdk -s=0xfc083ab1 -c=210
+void __attribute__((naked,noinline)) sub_fc083ab0_my() {
+    asm volatile (
+"    push.w  {r1, r2, r3, r4, r5, r6, r7, r8, sb, lr}\n"
+"    ldr     r7, =0x00039e5c\n"
 "    mov     r4, r0\n"
 "    ldr.w   r0, [r7, #0x16c]\n"
-"    cbz     r0, loc_fc39ff94\n"
+"    cbz     r0, loc_fc083acc\n"
 "    ldrh.w  r0, [r7, #0x1a2]\n"
 "    cmp     r0, #3\n"
-"    beq     loc_fc39ff94\n"
+"    beq     loc_fc083acc\n"
 "    ldr     r0, [r4, #8]\n"
 "    cmp     r0, #1\n"
-"    bhi     loc_fc39ff9e\n"
-"loc_fc39ff94:\n"
+"    bhi     loc_fc083ad6\n"
+"loc_fc083acc:\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc1dc60e\n"
-"    bl      sub_fc1dd03a\n"
-"loc_fc39ff9e:\n"
+"    bl      sub_fc07b230\n"
+"    bl      sub_fc07bc88\n"
+"loc_fc083ad6:\n"
 "    ldr.w   r0, [r7, #0xa4]\n"
-"    cbnz    r0, loc_fc39ffba\n"
+"    cbnz    r0, loc_fc083af2\n"
 "    ldrh.w  r0, [r7, #0x1a2]\n"
 "    cmp     r0, #3\n"
-"    beq     loc_fc39ffb2\n"
+"    beq     loc_fc083aea\n"
 "    ldr     r0, [r4, #8]\n"
 "    cmp     r0, #1\n"
-"    bhi     loc_fc39ffba\n"
-"loc_fc39ffb2:\n"
-"    bl      sub_fc153152\n"
-"    bl      sub_fc1dcc5a\n"
-"loc_fc39ffba:\n"
+"    bhi     loc_fc083af2\n"
+"loc_fc083aea:\n"
+"    bl      sub_fc0740a6\n"
+"    bl      sub_fc07b86a\n"
+"loc_fc083af2:\n"
 "    movs    r2, #4\n"
-"    movw    r0, #0x134\n"
-"    add     r1, sp, #4\n"
-"    bl      _GetPropertyCase\n"
+"    movw    r0, #0x137\n"
+"    add     r1, sp, #8\n"
+"    bl      _GetPropertyCase\n" //  (311)
 "    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc39ffd6\n"
+"    beq     loc_fc083b0e\n"
 "    movs    r0, #0\n"
-"    movw    r2, #0x193\n"
-"    ldr     r1, =0xfc3a0328\n" //  *"SsStandardCaptureSeq.c"
-"    blx     sub_fc2cf408\n" // j_DebugAssert
-"loc_fc39ffd6:\n"
-"    ldr     r0, [sp, #4]\n"
+"    movw    r2, #0x150\n"
+"    ldr     r1, =0xfc083e94\n" //  *"SsStandardCaptureSeq.c"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"loc_fc083b0e:\n"
+"    ldr     r0, [sp, #8]\n"
 "    ubfx    r0, r0, #8, #8\n"
 "    cmp     r0, #6\n"
-"    bne     loc_fc39ffe6\n"
-"    ldr     r0, =0xfc39ff1b\n"
+"    bne     loc_fc083b1e\n"
+"    ldr     r0, =0xfc083a79\n"
 "    movs    r1, #0\n"
-"    b       loc_fc39ffea\n"
-"loc_fc39ffe6:\n"
-"    ldr     r0, =0xfc1dc2d3\n"
+"    b       loc_fc083b22\n"
+"loc_fc083b1e:\n"
+"    ldr     r0, =0xfc07ae63\n"
 "    mov     r1, r4\n"
-"loc_fc39ffea:\n"
-"    bl      sub_fc16fe1c\n"
-"    ldr.w   r0, [r7, #0x18c]\n"
-"    cbz     r0, loc_fc39fff8\n"
-"    bl      sub_fc1dc546\n"
-"loc_fc39fff8:\n"
-"    movs    r0, #0\n"
-"    bl      sub_fc15655e\n"
-//"bl log_nr_call\n"
-"    mov     r0, r4\n"
-"    bl      sub_fc1dc724\n"
-"    ldr     r1, =0x000265c4\n"
-"    movs    r2, #4\n"
-"    movs    r0, #0x8d\n"
-"    bl      _GetPropertyCase\n"
+"loc_fc083b22:\n"
+"    bl      sub_fc0b8fc8\n"
+"    movs    r2, #2\n"
+"    movw    r0, #0x112\n"
+"    add     r1, sp, #4\n"
+"    bl      _GetPropertyCase\n" //  PROPCASE_USER_TV (274)
 "    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc3a001e\n"
+"    beq     loc_fc083b42\n"
 "    movs    r0, #0\n"
-"    movw    r2, #0x1ae\n"
-"    ldr     r1, =0xfc3a0328\n" //  *"SsStandardCaptureSeq.c"
-"    blx     sub_fc2cf408\n" // j_DebugAssert
-"loc_fc3a001e:\n"
-"    bl      sub_fc156618\n"
-"    bl      sub_fc1dc7c0\n"
+"    movw    r2, #0x159\n"
+"    ldr     r1, =0xfc083e94\n" //  *"SsStandardCaptureSeq.c"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"loc_fc083b42:\n"
+"    ldr.w   r0, [r7, #0x18c]\n"
+"    cbz     r0, loc_fc083b4c\n"
+"    bl      sub_fc07b168\n"
+"loc_fc083b4c:\n"
+"    movs    r0, #0\n"
+"    bl      sub_fc0743b6\n"
+"bl capt_seq_hook_set_nr\n"
+#ifdef CAPTSEQ_DEBUG_LOG
+"bl log_nr_call\n"
+#endif
+"    mov     r0, r4\n"
+"    bl      sub_fc07b360\n"
+"    ldr     r1, =0x000219e4\n"
+"    movs    r2, #4\n"
+"    movs    r0, #0x90\n"
+"    bl      _GetPropertyCase\n" //  (144)
+"    lsls    r0, r0, #0x1f\n"
+"    beq     loc_fc083b72\n"
+"    movs    r0, #0\n"
+"    movw    r2, #0x16e\n"
+"    ldr     r1, =0xfc083e94\n" //  *"SsStandardCaptureSeq.c"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"loc_fc083b72:\n"
+"    bl      sub_fc074470\n"
+"    bl      sub_fc07b3f2\n"
 "    movs    r1, #0\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc39ff1c\n"
+"    bl      sub_fc083a7a\n"
 "    mov     r6, r0\n"
-"    BL      wait_until_remote_button_is_released\n" // + remote hook
+"    BL      wait_until_remote_button_is_released\n" // + remote hook, might be able to go later
+#ifdef CAPTSEQ_DEBUG_LOG
 "bl log_remote_hook\n"
-"    ldr     r0, [sp, #4]\n"
+#endif
+"    ldr     r0, [sp, #8]\n"
 "    ubfx    r0, r0, #8, #8\n"
 "    cmp     r0, #6\n"
-"    bne     loc_fc3a003e\n"
-"    ldr     r2, =0xfc1dc515\n"
-"    b       loc_fc3a0040\n"
-"loc_fc3a003e:\n"
-"    ldr     r2, =0xfc1dc52b\n"
-"loc_fc3a0040:\n"
+"    bne     loc_fc083b92\n"
+"    ldr     r2, =0xfc07b137\n"
+"    b       loc_fc083b94\n"
+"loc_fc083b92:\n"
+"    ldr     r2, =0xfc07b14d\n"
+"loc_fc083b94:\n"
 "    ldrh    r0, [r4, #0x18]\n"
-"    ldr     r5, =0x000265c4\n"
-"    cbz     r0, loc_fc3a004e\n"
+"    ldr     r5, =0x000219e4\n"
+"    cbz     r0, loc_fc083ba2\n"
 "    cmp     r0, #1\n"
-"    beq     loc_fc3a0064\n"
+"    beq     loc_fc083bb8\n"
 "    cmp     r0, #4\n"
-"    bne     loc_fc3a00ca\n"
-"loc_fc3a004e:\n"
+"    bne     loc_fc083c1e\n"
+"loc_fc083ba2:\n"
 "    str     r6, [sp]\n"
 "    mov     r3, r2\n"
 "    ldr     r1, [r4, #0x5c]\n"
 "    mov     r0, r4\n"
 "    ldr     r2, [r5]\n"
-"    bl      sub_fc1dc126\n"
+"    bl      sub_fc07ac8e\n"
 "    mov     r5, r0\n"
-"    bl      sub_fc28bb0a\n"
-"    b       loc_fc3a00d8\n"
-"loc_fc3a0064:\n"
+"    bl      sub_fc13400e\n"
+"    b       loc_fc083c2c\n"
+"loc_fc083bb8:\n"
 "    str     r6, [sp]\n"
 "    mov     r3, r2\n"
 "    ldr     r1, [r4, #0x5c]\n"
 "    mov     r8, r5\n"
 "    ldr     r2, [r5]\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc1dc186\n" 
+"    bl      sub_fc07acf8\n"
 "    movs    r2, #1\n"
 "    mov     r5, r0\n"
 "    movs    r1, #0\n"
 "    movs    r0, #0x45\n"
-"    bl      sub_fc277200\n"
-//loc
+"    bl      sub_fc268cac\n"
 "    lsls    r0, r5, #0x1f\n"
-"    bne     loc_fc3a00d8\n"
+"    bne     loc_fc083c2c\n"
 "    ldr.w   r0, [r7, #0x100]\n"
-"    cbz     r0, loc_fc3a009a\n"
+"    cbz     r0, loc_fc083bee\n"
 "    ldr     r1, [r4, #8]\n"
-"    ldr     r2, =0x00212cc4\n"
+"    ldr     r2, =0x001d7f7c\n"
 "    ldr     r0, [r4, #0x5c]\n"
 "    add.w   r1, r2, r1, lsl #2\n"
 "    str     r0, [r1, #-0x4]\n"
-"    b       loc_fc3a00c4\n"
-"loc_fc3a009a:\n"
-"    ldr     r0, =0xfc39ff1b\n"
+"    b       loc_fc083c18\n"
+"loc_fc083bee:\n"
+"    ldr     r0, =0xfc083a79\n"
 "    movs    r1, #0\n"
-"    bl      sub_fc16fe1c\n"
+"    bl      sub_fc0b8fc8\n"
 "    movs    r1, #1\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc39ff1c\n"
+"    bl      sub_fc083a7a\n"
 "    mov     r6, r0\n"
 "    ldr.w   r0, [r8]\n"
 "    mov     r5, r8\n"
-"    bl      sub_fc1dc5b0\n"
+"    bl      sub_fc07b1d2\n"
 "    ldr     r1, [r4, #0x5c]\n"
 "    mov     r3, r6\n"
 "    ldr     r2, [r5]\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc1dc1f4\n" 
+"    bl      sub_fc07ad70\n"
 "    mov     r5, r0\n"
-"loc_fc3a00c4:\n"
-"    bl      sub_fc1dc0d0\n"
-"    b       loc_fc3a00d8\n"
-"loc_fc3a00ca:\n"
+"loc_fc083c18:\n"
+"    bl      sub_fc07ac38\n"
+"    b       loc_fc083c2c\n"
+"loc_fc083c1e:\n"
 "    movs    r0, #0\n"
-"    movw    r2, #0x1e1\n"
-"    ldr     r1, =0xfc3a0328\n" //  *"SsStandardCaptureSeq.c"
-"    blx     sub_fc2cf408\n" // j_DebugAssert
+"    movw    r2, #0x1a7\n"
+"    ldr     r1, =0xfc083e94\n" //  *"SsStandardCaptureSeq.c"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
 "    movs    r5, #0x1d\n"
-"loc_fc3a00d8:\n"
-"    bl      sub_fc1dc7c4\n"
-"    ldr.w   r8, =0xfc39ff1b\n"
+"loc_fc083c2c:\n"
+"    bl      sub_fc07b3f6\n"
+"    ldr.w   r8, =0xfc083a79\n"
 "    lsls    r0, r5, #0x1f\n"
-"    bne     loc_fc3a0134\n"
+"    bne     loc_fc083c88\n"
 "    ldr.w   r0, [r7, #0x108]\n"
-"    cbnz    r0, loc_fc3a0100\n"
+"    cbnz    r0, loc_fc083c54\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc1dddba\n"
+"    bl      sub_fc08107a\n"
 "    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc3a0100\n"
+"    beq     loc_fc083c54\n"
 "    movs    r0, #0\n"
-"    movw    r2, #0x207\n"
-"    ldr     r1, =0xfc3a0328\n" //  *"SsStandardCaptureSeq.c"
-"    blx     sub_fc2cf408\n" // j_DebugAssert
-"loc_fc3a0100:\n"
+"    movw    r2, #0x1cd\n"
+"    ldr     r1, =0xfc083e94\n" //  *"SsStandardCaptureSeq.c"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"loc_fc083c54:\n"
 #ifdef CAPTSEQ_DEBUG_LOG
- "bl log_rh\n"
+"bl log_rh\n"
 #endif
-"BL capt_seq_hook_raw_here\n"
-"BL clear_current_raw_addr\n"
+"    BL      capt_seq_hook_raw_here\n"
+"    BL      clear_current_raw_addr\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc1dc7b0\n"
+"    bl      sub_fc07b3e2\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc1dc784\n"
+"    bl      sub_fc07b3b6\n"
 "    cmp     r6, r8\n"
-"    beq     loc_fc3a0134\n"
-"    bl      sub_fc1dd17e\n"
+"    beq     loc_fc083c88\n"
+"    bl      sub_fc080b66\n"
 "    movs    r1, #4\n"
-"    movw    sb, #0x214\n"
-"    ldr     r3, =0xfc3a0328\n" //  *"SsStandardCaptureSeq.c"
+"    movw    sb, #0x1da\n"
+"    ldr     r3, =0xfc083e94\n" //  *"SsStandardCaptureSeq.c"
 "    movw    r2, #0x3a98\n"
 "    str.w   sb, [sp]\n"
-"    bl      sub_fc2d7ae4\n"
-"    cbz     r0, loc_fc3a0134\n"
+"    bl      sub_fc29ddac\n"
+"    cbz     r0, loc_fc083c88\n"
 "    movs    r0, #0\n"
 "    mov     r2, sb\n"
-"    ldr     r1, =0xfc3a0328\n" //  *"SsStandardCaptureSeq.c"
-"    blx     sub_fc2cf408\n" // j_DebugAssert
-"loc_fc3a0134:\n"
+"    ldr     r1, =0xfc083e94\n" //  *"SsStandardCaptureSeq.c"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"loc_fc083c88:\n"
 "    ldr.w   r0, [r7, #0x18c]\n"
-"    cbz     r0, loc_fc3a0144\n"
+"    cbz     r0, loc_fc083c98\n"
 "    movs    r2, #1\n"
 "    movs    r1, #0\n"
 "    movs    r0, #0x46\n"
-"    bl      sub_fc277200\n"
-"loc_fc3a0144:\n"
+"    bl      sub_fc268cac\n"
+"loc_fc083c98:\n"
 "    movs    r1, #2\n"
 "    mov     r2, r4\n"
 "    mov     r0, r5\n"
-"    bl      sub_fc150f62\n"
+"    bl      sub_fc079cf0\n"
 "    ldr     r0, [r7, #0x28]\n"
 "    cmp     r0, #0\n"
 "    mov     r0, r8\n"
-"    beq     loc_fc3a016a\n"
+"    beq     loc_fc083cbe\n"
 "    cmp     r6, r0\n"
-"    beq     loc_fc3a015e\n"
+"    beq     loc_fc083cb2\n"
 "    movs    r1, #1\n"
-"    b       loc_fc3a0160\n"
-"loc_fc3a015e:\n"
+"    b       loc_fc083cb4\n"
+"loc_fc083cb2:\n"
 "    movs    r1, #0\n"
-"loc_fc3a0160:\n"
+"loc_fc083cb4:\n"
 "    mov     r2, r5\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc1dd794\n"
-"    b       loc_fc3a017c\n"
-"loc_fc3a016a:\n"
+"    bl      sub_fc080dd8\n"
+"    b       loc_fc083cd0\n"
+"loc_fc083cbe:\n"
 "    cmp     r6, r0\n"
-"    beq     loc_fc3a0172\n"
+"    beq     loc_fc083cc6\n"
 "    movs    r1, #1\n"
-"    b       loc_fc3a0174\n"
-"loc_fc3a0172:\n"
+"    b       loc_fc083cc8\n"
+"loc_fc083cc6:\n"
 "    movs    r1, #0\n"
-"loc_fc3a0174:\n"
+"loc_fc083cc8:\n"
 "    mov     r2, r5\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc1dd74e\n"
-"loc_fc3a017c:\n"
+"    bl      sub_fc080d92\n"
+"loc_fc083cd0:\n"
 "    mov     r0, r5\n"
-"    pop.w   {r2, r3, r4, r5, r6, r7, r8, sb, sl, pc}\n"
+"    pop.w   {r1, r2, r3, r4, r5, r6, r7, r8, sb, pc}\n"
 ".ltorg\n"
-     );
+    );
 }
 
-void log_remote_hook(void) {
-    _LogCameraEvent(0x60,"remote hook");
-}
-void log_rh(void) {
-    _LogCameraEvent(0x60,"raw hook");
-}
-
- 
- 
-//exp_drv_task  -s=task_ExpDrv -c=428 -f=chdk
-
+// -f=chdk -s=task_ExpDrv -c=428
+// note, breaks on literal pool around fc2867f2-fc28681c
+// task_ExpDrv 0xfc286543
 void __attribute__((naked,noinline)) exp_drv_task() {
     asm volatile (
-// task_ExpDrv 0xfc291ccf
 "    push.w  {r4, r5, r6, r7, r8, sb, sl, fp, lr}\n"
 "    sub     sp, #0x2c\n"
-"    ldr.w   sb, =0x0000d1b0\n"
+"    ldr.w   sb, =0x0000d7a4\n"
 "    ldr.w   sl, =0xfffff400\n"
 "    movs    r0, #0\n"
-"    ldr     r6, =0x0005e458\n"
+"    ldr     r6, =0x0005c174\n"
 "    add.w   r8, sp, #0x1c\n"
 "    movw    fp, #0xbb8\n"
 "    str     r0, [sp, #0xc]\n"
-"loc_fc291cea:\n"
+"loc_fc28655e:\n"
 "    ldr.w   r0, [sb, #0x20]\n"
 "    movs    r2, #0\n"
 "    add     r1, sp, #0x28\n"
 "    mov     r4, sb\n"
-"    blx     sub_fc2cf348\n" // j_ReceiveMessageQueue
+"    blx     sub_fc2c7ca8\n" // j_ReceiveMessageQueue
 "    ldr     r0, [sp, #0xc]\n"
 "    cmp     r0, #1\n"
-"    bne     loc_fc291d22\n"
+"    bne     loc_fc286596\n"
 "    ldr     r0, [sp, #0x28]\n"
 "    ldr     r0, [r0]\n"
-"    cmp     r0, #0x14\n"
-"loc_fc291d04:\n"
-"    beq     loc_fc291e04\n"
 "    cmp     r0, #0x15\n"
-"    beq     loc_fc291d04\n"
+"loc_fc286578:\n"
+"    beq     loc_fc286678\n"
 "    cmp     r0, #0x16\n"
-"    beq     loc_fc291d04\n"
+"    beq     loc_fc286578\n"
 "    cmp     r0, #0x17\n"
-"    beq     loc_fc291d04\n"
+"    beq     loc_fc286578\n"
 "    cmp     r0, #0x18\n"
-"    beq     loc_fc291e14\n"
-"    cmp     r0, #0x2e\n"
-"    beq     loc_fc291dbe\n"
+"    beq     loc_fc286578\n"
+"    cmp     r0, #0x19\n"
+"    beq     loc_fc286688\n"
+"    cmp     r0, #0x30\n"
+"    beq     loc_fc286632\n"
 "    movs    r0, #0\n"
 "    add     r1, sp, #0xc\n"
-"    bl      sub_fc291c8a\n"
-"loc_fc291d22:\n"
+"    bl      sub_fc2864fe\n"
+"loc_fc286596:\n"
 "    ldr     r0, [sp, #0x28]\n"
 "    ldr     r1, [r0]\n"
-"    cmp     r1, #0x34\n"
-"    bne     loc_fc291d40\n"
-"    bl      sub_fc292b82\n"
+"    cmp     r1, #0x38\n"
+"    bne     loc_fc2865b4\n"
+"    bl      sub_fc287450\n"
 "    ldr.w   r0, [sb, #0x1c]\n"
 "    movs    r1, #1\n"
-"    blx     sub_fc2cf328\n" // j_SetEventFlag
-"    blx     sub_fc2cf358\n"
+"    blx     sub_fc2c7cd0\n" // j_SetEventFlag
+"    blx     sub_fc2c7d00\n" // -> ExitTask
 "    add     sp, #0x2c\n"
-//"    b       loc_fc291a14\n" //out of range
-" ldmia.w sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}\n"
-//// 0xfc291a14
-//"    pop.w   {r4, r5, r6, r7, r8, sb, sl, fp, pc}\n"
-
-"loc_fc291d40:\n"
-"    cmp     r1, #0x33\n"
-"    bne     loc_fc291d52\n"
+//"    b       loc_fc286288\n"
+"    pop.w   {r4, r5, r6, r7, r8, sb, sl, fp, pc}\n" // + @fc286288
+"loc_fc2865b4:\n"
+"    cmp     r1, #0x37\n"
+"    bne     loc_fc2865c6\n"
 "    add.w   r0, r0, #0xac\n"
 "    ldrd    r2, r1, [r0]\n"
 "    mov     r0, r1\n"
 "    blx     r2\n"
-"    b       loc_fc292162\n"
-"loc_fc291d52:\n"
-"    cmp     r1, #0x2c\n"
-"    bne     loc_fc291d88\n"
+"    b       loc_fc2869da\n"
+"loc_fc2865c6:\n"
+"    cmp     r1, #0x2e\n"
+"    bne     loc_fc2865fc\n"
 "    ldr     r0, [r4, #0x1c]\n"
 "    movs    r1, #0x80\n"
-"    blx     sub_fc2cf3d8\n" // j_ClearEventFlag
-"    ldr     r0, =0xfc28db35\n"
+"    blx     sub_fc2c7dd0\n" // j_ClearEventFlag
+"    ldr     r0, =0xfc282365\n"
 "    movs    r1, #0x80\n"
-"    bl      sub_fc14d27a\n"
+"    bl      sub_fc0d727a\n"
 "    ldr     r0, [r4, #0x1c]\n"
 "    movs    r1, #0x80\n"
 "    mov     r2, fp\n"
-"    blx     sub_fc2cf1b8\n" // j_WaitForAllEventFlag
+"    blx     sub_fc2c7cd8\n" // j_WaitForAllEventFlag
 "    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc291d7a\n"
-"    movw    r2, #0x17d8\n"
-"    b       loc_fc291e0a\n"
-"loc_fc291d7a:\n"
+"    beq     loc_fc2865ee\n"
+"    movw    r2, #0x199e\n"
+"    b       loc_fc28667e\n"
+"loc_fc2865ee:\n"
 "    ldr     r1, [sp, #0x28]\n"
 "    add.w   r1, r1, #0xac\n"
 "    ldrd    r1, r0, [r1]\n"
 "    blx     r1\n"
-"    b       loc_fc292162\n"
-"loc_fc291d88:\n"
-"    cmp     r1, #0x2d\n"
-"    bne     loc_fc291dba\n"
+"    b       loc_fc2869da\n"
+"loc_fc2865fc:\n"
+"    cmp     r1, #0x2f\n"
+"    bne     loc_fc28662e\n"
 "    add     r1, sp, #0xc\n"
-"    bl      sub_fc291c8a\n"
+"    bl      sub_fc2864fe\n"
 "    movw    r5, #0x100\n"
 "    ldr     r0, [r4, #0x1c]\n"
 "    mov     r1, r5\n"
-"    blx     sub_fc2cf3d8\n" // j_ClearEventFlag
-"    ldr     r0, =0xfc28db3f\n"
+"    blx     sub_fc2c7dd0\n" // j_ClearEventFlag
+"    ldr     r0, =0xfc28236f\n"
 "    mov     r1, r5\n"
-"    bl      sub_fc14dbfa\n"
+"    bl      sub_fc0d7c18\n"
 "    ldr     r0, [r4, #0x1c]\n"
 "    mov     r2, fp\n"
 "    mov     r1, r5\n"
-"    blx     sub_fc2cf1b8\n" // j_WaitForAllEventFlag
+"    blx     sub_fc2c7cd8\n" // j_WaitForAllEventFlag
 "    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc291d7a\n"
-"    movw    r2, #0x17e2\n"
-"    b       loc_fc291e0a\n"
-"loc_fc291dba:\n"
-"    cmp     r1, #0x2e\n"
-"    bne     loc_fc291dc8\n"
-"loc_fc291dbe:\n"
+"    beq     loc_fc2865ee\n"
+"    movw    r2, #0x19a8\n"
+"    b       loc_fc28667e\n"
+"loc_fc28662e:\n"
+"    cmp     r1, #0x30\n"
+"    bne     loc_fc28663c\n"
+"loc_fc286632:\n"
 "    ldr     r0, [sp, #0x28]\n"
 "    add     r1, sp, #0xc\n"
-"    bl      sub_fc291c8a\n"
-"    b       loc_fc291d7a\n"
-"loc_fc291dc8:\n"
-"    cmp     r1, #0x31\n"
-"    bne     loc_fc291dda\n"
-"    bl      sub_fc16d89c\n"
-"    bl      sub_fc16e228\n"
-"    bl      sub_fc16df0a\n"
-"    b       loc_fc291d7a\n"
-"loc_fc291dda:\n"
-"    cmp     r1, #0x32\n"
-"    bne     loc_fc291e14\n"
+"    bl      sub_fc2864fe\n"
+"    b       loc_fc2865ee\n"
+"loc_fc28663c:\n"
+"    cmp     r1, #0x35\n"
+"    bne     loc_fc28664e\n"
+"    bl      sub_fc3a0e7c\n"
+"    bl      sub_fc130f3c\n"
+"    bl      sub_fc130c1e\n"
+"    b       loc_fc2865ee\n"
+"loc_fc28664e:\n"
+"    cmp     r1, #0x36\n"
+"    bne     loc_fc286688\n"
 "    ldr     r0, [r4, #0x1c]\n"
 "    movs    r1, #4\n"
-"    blx     sub_fc2cf3d8\n" // j_ClearEventFlag
-"    ldr     r1, =0xfc28db53\n"
+"    blx     sub_fc2c7dd0\n" // j_ClearEventFlag
+"    ldr     r1, =0xfc282383\n"
 "    movs    r2, #4\n"
 "    mov     r0, sl\n"
-"    bl      sub_fc292bd4\n"
-"    bl      sub_fc16d5fe\n"
+"    bl      sub_fc2874a2\n"
+"    bl      sub_fc3a0bde\n"
 "    ldr     r0, [r4, #0x1c]\n"
 "    movs    r1, #4\n"
 "    mov     r2, fp\n"
-"    blx     sub_fc2cf3d0\n" // j_WaitForAnyEventFlag
+"    blx     sub_fc2c7dd8\n" // j_WaitForAnyEventFlag
 "    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc291d7a\n"
-"    b       loc_fc291e06\n"
-"loc_fc291e04:\n"
-"    b       loc_fc291e14\n"
-"loc_fc291e06:\n"
-"    movw    r2, #0x181a\n"
-"loc_fc291e0a:\n"
-"    ldr     r1, =0xfc28e360\n" //  **"ExpDrv.c"
+"    beq     loc_fc2865ee\n"
+"    b       loc_fc28667a\n"
+"loc_fc286678:\n"
+"    b       loc_fc286688\n"
+"loc_fc28667a:\n"
+"    movw    r2, #0x1a84\n"
+"loc_fc28667e:\n"
+"    ldr     r1, =0xfc282b88\n" //  **"ExpDrv.c"
 "    movs    r0, #0\n"
-"    blx     sub_fc2cf408\n" // j_DebugAssert
-"    b       loc_fc291d7a\n"
-"loc_fc291e14:\n"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"    b       loc_fc2865ee\n"
+"loc_fc286688:\n"
 "    ldr     r0, [sp, #0x28]\n"
 "    movs    r5, #1\n"
 "    ldr     r1, [r0]\n"
-"    cmp     r1, #0x12\n"
-"    beq     loc_fc291e22\n"
 "    cmp     r1, #0x13\n"
-"    bne     loc_fc291e60\n"
-"loc_fc291e22:\n"
+"    beq     loc_fc286696\n"
+"    cmp     r1, #0x14\n"
+"    bne     loc_fc2866d4\n"
+"loc_fc286696:\n"
 "    ldr.w   r1, [r0, #0x94]\n"
 "    mov     r4, r8\n"
 "    add.w   r1, r1, r1, lsl #1\n"
@@ -1071,7 +1055,7 @@ void __attribute__((naked,noinline)) exp_drv_task() {
 "    subs    r1, #8\n"
 "    ldm     r1!, {r2, r3, r7}\n"
 "    stm     r4!, {r2, r3, r7}\n"
-"    bl      sub_fc290578\n"
+"    bl      sub_fc284e02\n"
 "    ldr     r0, [sp, #0x28]\n"
 "    add.w   r0, r0, #0x94\n"
 "    ldrd    r3, r2, [r0, #0x18]\n"
@@ -1079,34 +1063,34 @@ void __attribute__((naked,noinline)) exp_drv_task() {
 "    sub.w   r0, r0, #0x90\n"
 "    blx     r3\n"
 "    ldr     r0, [sp, #0x28]\n"
-"    bl      sub_fc292dea\n"
+"    bl      sub_fc2876ba\n"
 "    ldr     r0, [sp, #0x28]\n"
 "    add.w   r0, r0, #0x94\n"
 "    ldr     r1, [r0]\n"
 "    ldrd    r3, r2, [r0, #0x20]\n"
-"    b       loc_fc292088\n"
-"loc_fc291e60:\n"
-"    cmp     r1, #0x14\n"
-"    beq     loc_fc291e74\n"
+"    b       loc_fc286900\n"
+"loc_fc2866d4:\n"
 "    cmp     r1, #0x15\n"
-"    beq     loc_fc291e74\n"
+"    beq     loc_fc2866e8\n"
 "    cmp     r1, #0x16\n"
-"    beq     loc_fc291e74\n"
+"    beq     loc_fc2866e8\n"
 "    cmp     r1, #0x17\n"
-"    beq     loc_fc291e74\n"
+"    beq     loc_fc2866e8\n"
 "    cmp     r1, #0x18\n"
-"    bne     loc_fc291ee6\n"
-"loc_fc291e74:\n"
+"    beq     loc_fc2866e8\n"
+"    cmp     r1, #0x19\n"
+"    bne     loc_fc28675a\n"
+"loc_fc2866e8:\n"
 "    add     r3, sp, #0xc\n"
 "    mov     r2, sp\n"
 "    add     r1, sp, #0x1c\n"
-"    bl      sub_fc29074c\n"
+"    bl      sub_fc284fd2\n"
 "    cmp     r0, #1\n"
 "    mov     r4, r0\n"
-"    beq     loc_fc291e88\n"
+"    beq     loc_fc2866fc\n"
 "    cmp     r4, #5\n"
-"    bne     loc_fc291e9e\n"
-"loc_fc291e88:\n"
+"    bne     loc_fc286712\n"
+"loc_fc2866fc:\n"
 "    ldr     r0, [sp, #0x28]\n"
 "    mov     r2, r4\n"
 "    add.w   r0, r0, #0x94\n"
@@ -1114,13 +1098,13 @@ void __attribute__((naked,noinline)) exp_drv_task() {
 "    ldr     r1, [r0]\n"
 "    sub.w   r0, r0, #0x90\n"
 "    blx     r7\n"
-"    b       loc_fc291ec4\n"
-"loc_fc291e9e:\n"
+"    b       loc_fc286738\n"
+"loc_fc286712:\n"
 "    cmp     r4, #2\n"
-"    beq     loc_fc291ea6\n"
+"    beq     loc_fc28671a\n"
 "    cmp     r4, #6\n"
-"    bne     loc_fc291ed0\n"
-"loc_fc291ea6:\n"
+"    bne     loc_fc286744\n"
+"loc_fc28671a:\n"
 "    ldr     r0, [sp, #0x28]\n"
 "    mov     r2, r4\n"
 "    add.w   r0, r0, #0x94\n"
@@ -1131,14 +1115,14 @@ void __attribute__((naked,noinline)) exp_drv_task() {
 "    ldr     r0, [sp, #0x28]\n"
 "    add     r1, sp, #0x1c\n"
 "    mov     r2, sp\n"
-"    bl      sub_fc291a18\n"
-"loc_fc291ec4:\n"
+"    bl      sub_fc28628c\n"
+"loc_fc286738:\n"
 "    ldr     r2, [sp, #0xc]\n"
 "    mov     r1, r4\n"
 "    ldr     r0, [sp, #0x28]\n"
-"    bl      sub_fc291c3a\n"
-"    b       loc_fc29208e\n"
-"loc_fc291ed0:\n"
+"    bl      sub_fc2864ae\n"
+"    b       loc_fc286906\n"
+"loc_fc286744:\n"
 "    ldr     r0, [sp, #0x28]\n"
 "    mov     r2, r4\n"
 "    add.w   r0, r0, #0x94\n"
@@ -1146,13 +1130,13 @@ void __attribute__((naked,noinline)) exp_drv_task() {
 "    ldr     r1, [r0]\n"
 "    sub.w   r0, r0, #0x90\n"
 "    blx     r7\n"
-"    b       loc_fc29208e\n"
-"loc_fc291ee6:\n"
-"    cmp     r1, #0x28\n"
-"    beq     loc_fc291eee\n"
-"    cmp     r1, #0x29\n"
-"    bne     loc_fc291f20\n"
-"loc_fc291eee:\n"
+"    b       loc_fc286906\n"
+"loc_fc28675a:\n"
+"    cmp     r1, #0x2a\n"
+"    beq     loc_fc286762\n"
+"    cmp     r1, #0x2b\n"
+"    bne     loc_fc286794\n"
+"loc_fc286762:\n"
 "    ldr.w   r1, [r0, #0x94]\n"
 "    mov     r4, r8\n"
 "    add.w   r1, r1, r1, lsl #1\n"
@@ -1160,7 +1144,7 @@ void __attribute__((naked,noinline)) exp_drv_task() {
 "    subs    r1, #8\n"
 "    ldm     r1!, {r2, r3, r7}\n"
 "    stm     r4!, {r2, r3, r7}\n"
-"    bl      sub_fc28f6ac\n"
+"    bl      sub_fc283f36\n"
 "    ldr     r0, [sp, #0x28]\n"
 "    add.w   r0, r0, #0x94\n"
 "    ldrd    r3, r2, [r0, #0x18]\n"
@@ -1168,127 +1152,91 @@ void __attribute__((naked,noinline)) exp_drv_task() {
 "    sub.w   r0, r0, #0x90\n"
 "    blx     r3\n"
 "    ldr     r0, [sp, #0x28]\n"
-"    bl      sub_fc28fa9c\n"
-"    b       loc_fc29208e\n"
-"loc_fc291f20:\n"
+"    bl      sub_fc284320\n"
+"    b       loc_fc286906\n"
+"loc_fc286794:\n"
 "    adds    r1, r0, #4\n"
 "    mov     r4, r8\n"
 "    ldm     r1!, {r2, r3, r7}\n"
 "    stm     r4!, {r2, r3, r7}\n"
 "    ldr     r1, [r0]\n"
-"    cmp     r1, #0x2c\n"
-"    bhs     loc_fc291f62\n"
-"    tbb     [pc, r1]\n" // (jumptable r1 44 elements)
-"branchtable_fc291f32:\n"
-"    .byte((loc_fc291f5e - branchtable_fc291f32) / 2)\n" // (case 0)
-"    .byte((loc_fc291f5e - branchtable_fc291f32) / 2)\n" // (case 1)
-"    .byte((loc_fc291f64 - branchtable_fc291f32) / 2)\n" // (case 2)
-"    .byte((loc_fc291f6a - branchtable_fc291f32) / 2)\n" // (case 3)
-"    .byte((loc_fc291f6a - branchtable_fc291f32) / 2)\n" // (case 4)
-"    .byte((loc_fc291f6a - branchtable_fc291f32) / 2)\n" // (case 5)
-"    .byte((loc_fc291f5e - branchtable_fc291f32) / 2)\n" // (case 6)
-"    .byte((loc_fc291f64 - branchtable_fc291f32) / 2)\n" // (case 7)
-"    .byte((loc_fc291f6a - branchtable_fc291f32) / 2)\n" // (case 8)
-"    .byte((loc_fc291f6a - branchtable_fc291f32) / 2)\n" // (case 9)
-"    .byte((loc_fc291f7c - branchtable_fc291f32) / 2)\n" // (case 10)
-"    .byte((loc_fc291f7c - branchtable_fc291f32) / 2)\n" // (case 11)
-"    .byte((loc_fc29206c - branchtable_fc291f32) / 2)\n" // (case 12)
-"    .byte((loc_fc292072 - branchtable_fc291f32) / 2)\n" // (case 13)
-"    .byte((loc_fc292072 - branchtable_fc291f32) / 2)\n" // (case 14)
-"    .byte((loc_fc292072 - branchtable_fc291f32) / 2)\n" // (case 15)
-"    .byte((loc_fc292072 - branchtable_fc291f32) / 2)\n" // (case 16)
-"    .byte((loc_fc292078 - branchtable_fc291f32) / 2)\n" // (case 17)
-"    .byte((loc_fc29207c - branchtable_fc291f32) / 2)\n" // (case 18)
-"    .byte((loc_fc29207c - branchtable_fc291f32) / 2)\n" // (case 19)
-"    .byte((loc_fc29207c - branchtable_fc291f32) / 2)\n" // (case 20)
-"    .byte((loc_fc29207c - branchtable_fc291f32) / 2)\n" // (case 21)
-"    .byte((loc_fc29207c - branchtable_fc291f32) / 2)\n" // (case 22)
-"    .byte((loc_fc29207c - branchtable_fc291f32) / 2)\n" // (case 23)
-"    .byte((loc_fc29207c - branchtable_fc291f32) / 2)\n" // (case 24)
-"    .byte((loc_fc291f70 - branchtable_fc291f32) / 2)\n" // (case 25)
-"    .byte((loc_fc291f76 - branchtable_fc291f32) / 2)\n" // (case 26)
-"    .byte((loc_fc291f76 - branchtable_fc291f32) / 2)\n" // (case 27)
-"    .byte((loc_fc291f76 - branchtable_fc291f32) / 2)\n" // (case 28)
-"    .byte((loc_fc291fac - branchtable_fc291f32) / 2)\n" // (case 29)
-"    .byte((loc_fc291fac - branchtable_fc291f32) / 2)\n" // (case 30)
-"    .byte((loc_fc291fac - branchtable_fc291f32) / 2)\n" // (case 31)
-"    .byte((loc_fc291fb2 - branchtable_fc291f32) / 2)\n" // (case 32)
-"    .byte((loc_fc291fdc - branchtable_fc291f32) / 2)\n" // (case 33)
-"    .byte((loc_fc29207c - branchtable_fc291f32) / 2)\n" // (case 34)
-"    .byte((loc_fc29207c - branchtable_fc291f32) / 2)\n" // (case 35)
-"    .byte((loc_fc292006 - branchtable_fc291f32) / 2)\n" // (case 36)
-"    .byte((loc_fc292030 - branchtable_fc291f32) / 2)\n" // (case 37)
-"    .byte((loc_fc29205a - branchtable_fc291f32) / 2)\n" // (case 38)
-"    .byte((loc_fc29205a - branchtable_fc291f32) / 2)\n" // (case 39)
-"    .byte((loc_fc29207c - branchtable_fc291f32) / 2)\n" // (case 40)
-"    .byte((loc_fc29207c - branchtable_fc291f32) / 2)\n" // (case 41)
-"    .byte((loc_fc292060 - branchtable_fc291f32) / 2)\n" // (case 42)
-"    .byte((loc_fc292066 - branchtable_fc291f32) / 2)\n" // (case 43)
+"    cmp     r1, #0x2e\n"
+"    bhs     loc_fc2867d8\n"
+"    tbb     [pc, r1]\n" // (jumptable r1 46 elements)
+"branchtable_fc2867a6:\n"
+"    .byte((loc_fc2867d4 - branchtable_fc2867a6) / 2)\n" // (case 0)
+"    .byte((loc_fc2867d4 - branchtable_fc2867a6) / 2)\n" // (case 1)
+"    .byte((loc_fc2867da - branchtable_fc2867a6) / 2)\n" // (case 2)
+"    .byte((loc_fc2867e0 - branchtable_fc2867a6) / 2)\n" // (case 3)
+"    .byte((loc_fc2867e0 - branchtable_fc2867a6) / 2)\n" // (case 4)
+"    .byte((loc_fc2867e0 - branchtable_fc2867a6) / 2)\n" // (case 5)
+"    .byte((loc_fc2867d4 - branchtable_fc2867a6) / 2)\n" // (case 6)
+"    .byte((loc_fc2867da - branchtable_fc2867a6) / 2)\n" // (case 7)
+"    .byte((loc_fc2867e0 - branchtable_fc2867a6) / 2)\n" // (case 8)
+"    .byte((loc_fc2867e0 - branchtable_fc2867a6) / 2)\n" // (case 9)
+"    .byte((loc_fc28681c - branchtable_fc2867a6) / 2)\n" // (case 10)
+"    .byte((loc_fc28681c - branchtable_fc2867a6) / 2)\n" // (case 11)
+"    .byte((loc_fc28681c - branchtable_fc2867a6) / 2)\n" // (case 12)
+"    .byte((loc_fc2868e4 - branchtable_fc2867a6) / 2)\n" // (case 13)
+"    .byte((loc_fc2868ea - branchtable_fc2867a6) / 2)\n" // (case 14)
+"    .byte((loc_fc2868ea - branchtable_fc2867a6) / 2)\n" // (case 15)
+"    .byte((loc_fc2868ea - branchtable_fc2867a6) / 2)\n" // (case 16)
+"    .byte((loc_fc2868ea - branchtable_fc2867a6) / 2)\n" // (case 17)
+"    .byte((loc_fc2868f0 - branchtable_fc2867a6) / 2)\n" // (case 18)
+"    .byte((loc_fc2868f4 - branchtable_fc2867a6) / 2)\n" // (case 19)
+"    .byte((loc_fc2868f4 - branchtable_fc2867a6) / 2)\n" // (case 20)
+"    .byte((loc_fc2868f4 - branchtable_fc2867a6) / 2)\n" // (case 21)
+"    .byte((loc_fc2868f4 - branchtable_fc2867a6) / 2)\n" // (case 22)
+"    .byte((loc_fc2868f4 - branchtable_fc2867a6) / 2)\n" // (case 23)
+"    .byte((loc_fc2868f4 - branchtable_fc2867a6) / 2)\n" // (case 24)
+"    .byte((loc_fc2868f4 - branchtable_fc2867a6) / 2)\n" // (case 25)
+"    .byte((loc_fc2867e6 - branchtable_fc2867a6) / 2)\n" // (case 26)
+"    .byte((loc_fc2867ec - branchtable_fc2867a6) / 2)\n" // (case 27)
+"    .byte((loc_fc2867ec - branchtable_fc2867a6) / 2)\n" // (case 28)
+"    .byte((loc_fc2867ec - branchtable_fc2867a6) / 2)\n" // (case 29)
+"    .byte((loc_fc286824 - branchtable_fc2867a6) / 2)\n" // (case 30)
+"    .byte((loc_fc286824 - branchtable_fc2867a6) / 2)\n" // (case 31)
+"    .byte((loc_fc286824 - branchtable_fc2867a6) / 2)\n" // (case 32)
+"    .byte((loc_fc286824 - branchtable_fc2867a6) / 2)\n" // (case 33)
+"    .byte((loc_fc28682a - branchtable_fc2867a6) / 2)\n" // (case 34)
+"    .byte((loc_fc286854 - branchtable_fc2867a6) / 2)\n" // (case 35)
+"    .byte((loc_fc2868f4 - branchtable_fc2867a6) / 2)\n" // (case 36)
+"    .byte((loc_fc2868f4 - branchtable_fc2867a6) / 2)\n" // (case 37)
+"    .byte((loc_fc28687e - branchtable_fc2867a6) / 2)\n" // (case 38)
+"    .byte((loc_fc2868a8 - branchtable_fc2867a6) / 2)\n" // (case 39)
+"    .byte((loc_fc2868d2 - branchtable_fc2867a6) / 2)\n" // (case 40)
+"    .byte((loc_fc2868d2 - branchtable_fc2867a6) / 2)\n" // (case 41)
+"    .byte((loc_fc2868f4 - branchtable_fc2867a6) / 2)\n" // (case 42)
+"    .byte((loc_fc2868f4 - branchtable_fc2867a6) / 2)\n" // (case 43)
+"    .byte((loc_fc2868d8 - branchtable_fc2867a6) / 2)\n" // (case 44)
+"    .byte((loc_fc2868de - branchtable_fc2867a6) / 2)\n" // (case 45)
 ".align 1\n"
-"loc_fc291f5e:\n"
-"    bl      sub_fc28e0b0\n"
-"loc_fc291f62:\n"
-"    b       loc_fc29207c\n"
-"loc_fc291f64:\n"
-"    bl      sub_fc28e314\n"
-"    b       loc_fc29207c\n"
-"loc_fc291f6a:\n"
-"    bl      sub_fc28e53e\n"
-"    b       loc_fc29207c\n"
-"loc_fc291f70:\n"
-"    bl      sub_fc28e7e2\n"
-"    b       loc_fc29207c\n"
-"loc_fc291f76:\n"
-"    bl      sub_fc28e996\n"
-"    b       loc_fc29207c\n"
-"loc_fc291f7c:\n"
-//"    bl      sub_fc28edc8\n"
-"    bl      sub_fc28edc8_my\n"//  --->
-"    movs    r5, #0\n"
-"    b       loc_fc29207c\n"
+"loc_fc2867d4:\n"
+"    bl      sub_fc282924\n"
+"loc_fc2867d8:\n"
+"    b       loc_fc2868f4\n"
+"loc_fc2867da:\n"
+"    bl      sub_fc282bae\n"
+"    b       loc_fc2868f4\n"
+"loc_fc2867e0:\n"
+"    bl      sub_fc282da8\n"
+"    b       loc_fc2868f4\n"
+"loc_fc2867e6:\n"
+"    bl      sub_fc283048\n"
+"    b       loc_fc2868f4\n"
+"loc_fc2867ec:\n"
+"    bl      sub_fc2831f8\n"
+"    b       loc_fc2868f4\n"
+// literal pool in original fw
 ".ltorg\n"
-// something wrong here: literals?
-/*
-"    b       loc_fc292648\n"
-"    stc2    p11, c13, [r8], #-0xac\n"
-"    stc2    p11, c13, [r8], #-0x1fc\n"
-"    stc2    p1, c13, [r8], #-0x2c0\n"
-"    movs    r0, r0\n"
-"    blt     loc_fc29202a\n"
-"    stc2    p4, c14, [r8], #-0x160\n"
-"    movs    r5, r0\n"
-"    bl      sub_fbe92f9e\n"
-"    blt     loc_fc29200e\n"
-"    stc2    p11, c13, [r8], #-0xfc\n"
-"    stc2    p11, c13, [r8], #-0x14c\n"
-"    stc2    p7, c15, [r8], #-0x3f0\n"
-*/
-/* todo figure this out
-loc_fc291f7c:
-fc291f7c: 	f7fc ff24 	bl	sub_fc28edc8
-fc291f80: 	2500      	movs	r5, #0
-fc291f82: 	e07b      	b	loc_fc29207c
-fc291f84: 	e360      	b	loc_fc292648
-fc291f86: 	fc28 db2b 	stc2	p11, c13, [r8], #-0xac
-fc291f8a: 	fc28 db7f 	stc2	p11, c13, [r8], #-0x1fc
-fc291f8e: 	fc28 d1b0 	stc2	p1, c13, [r8], #-0x2c0
-fc291f92: 	0000      	movs	r0, r0
-fc291f94: 	db49      	blt	loc_fc29202a
-fc291f96: 	fc28 e458 	stc2	p4, c14, [r8], #-0x160
-fc291f9a: 	0005      	movs	r5, r0
-fc291f9c: 	f400 ffff 	bl	sub_fbe92f9e
-fc291fa0: 	db35      	blt	loc_fc29200e
-fc291fa2: 	fc28 db3f 	stc2	p11, c13, [r8], #-0xfc
-fc291fa6: 	fc28 db53 	stc2	p11, c13, [r8], #-0x14c
-fc291faa: 	fc28 f7fc 	stc2	p7, c15, [r8], #-0x3f0
-; ff89
-*/
-// ff89
-// 0xfc291fac fc f7 89 ff
-"loc_fc291fac:\n"
-"    bl      sub_fc28eec2\n"
-"    b       loc_fc29207c\n"
-"loc_fc291fb2:\n"
+"loc_fc28681c:\n"
+"    bl      sub_fc283626_my\n"
+"    movs    r5, #0\n"
+"    b       loc_fc2868f4\n"
+"loc_fc286824:\n"
+"    bl      sub_fc283720\n"
+"    b       loc_fc2868f4\n"
+"loc_fc28682a:\n"
 "    ldrh    r1, [r0, #4]\n"
 "    strh.w  r1, [sp, #0x1c]\n"
 "    ldrh    r1, [r6, #2]\n"
@@ -1301,9 +1249,9 @@ fc291faa: 	fc28 f7fc 	stc2	p7, c15, [r8], #-0x3f0
 "    strh.w  r1, [sp, #0x24]\n"
 "    ldrh    r1, [r6, #0xa]\n"
 "    strh.w  r1, [sp, #0x26]\n"
-"    bl      sub_fc28f3f2\n"
-"    b       loc_fc29207c\n"
-"loc_fc291fdc:\n"
+"    bl      sub_fc283c82\n"
+"    b       loc_fc2868f4\n"
+"loc_fc286854:\n"
 "    ldrh    r1, [r0, #4]\n"
 "    strh.w  r1, [sp, #0x1c]\n"
 "    ldrh    r1, [r6, #2]\n"
@@ -1316,13 +1264,12 @@ fc291faa: 	fc28 f7fc 	stc2	p7, c15, [r8], #-0x3f0
 "    strh.w  r1, [sp, #0x24]\n"
 "    ldrh    r1, [r6, #0xa]\n"
 "    strh.w  r1, [sp, #0x26]\n"
-"    bl      sub_fc292c40\n"
-"    b       loc_fc29207c\n"
-"loc_fc292006:\n"
+"    bl      sub_fc28750e\n"
+"    b       loc_fc2868f4\n"
+"loc_fc28687e:\n"
 "    ldrh    r1, [r6]\n"
 "    strh.w  r1, [sp, #0x1c]\n"
 "    ldrh    r1, [r0, #6]\n"
-"loc_fc29200e:\n"
 "    strh.w  r1, [sp, #0x1e]\n"
 "    ldrh    r1, [r6, #4]\n"
 "    strh.w  r1, [sp, #0x20]\n"
@@ -1332,10 +1279,9 @@ fc291faa: 	fc28 f7fc 	stc2	p7, c15, [r8], #-0x3f0
 "    strh.w  r1, [sp, #0x24]\n"
 "    ldrh    r1, [r6, #0xa]\n"
 "    strh.w  r1, [sp, #0x26]\n"
-"loc_fc29202a:\n"
-"    bl      sub_fc292cc6\n"
-"    b       loc_fc29207c\n"
-"loc_fc292030:\n"
+"    bl      sub_fc287594\n"
+"    b       loc_fc2868f4\n"
+"loc_fc2868a8:\n"
 "    ldrh    r1, [r6]\n"
 "    strh.w  r1, [sp, #0x1c]\n"
 "    ldrh    r1, [r6, #2]\n"
@@ -1348,252 +1294,284 @@ fc291faa: 	fc28 f7fc 	stc2	p7, c15, [r8], #-0x3f0
 "    strh.w  r1, [sp, #0x24]\n"
 "    ldrh    r1, [r6, #0xa]\n"
 "    strh.w  r1, [sp, #0x26]\n"
-"    bl      sub_fc292d7c\n"
-"    b       loc_fc29207c\n"
-"loc_fc29205a:\n"
-"    bl      sub_fc28f4d2\n"
-"    b       loc_fc29207c\n"
-"loc_fc292060:\n"
-"    bl      sub_fc28fb64\n"
-"    b       loc_fc29207c\n"
-"loc_fc292066:\n"
-"    bl      sub_fc28ff46\n"
-"    b       loc_fc29207c\n"
-"loc_fc29206c:\n"
-"    bl      sub_fc29014c\n"
-"    b       loc_fc29207c\n"
-"loc_fc292072:\n"
-"    bl      sub_fc2902a2\n"
-"    b       loc_fc29207c\n"
-"loc_fc292078:\n"
-"    bl      sub_fc2903be\n"
-"loc_fc29207c:\n"
+"    bl      sub_fc28764c\n"
+"    b       loc_fc2868f4\n"
+"loc_fc2868d2:\n"
+"    bl      sub_fc283d60\n"
+"    b       loc_fc2868f4\n"
+"loc_fc2868d8:\n"
+"    bl      sub_fc2843e8\n"
+"    b       loc_fc2868f4\n"
+"loc_fc2868de:\n"
+"    bl      sub_fc2847c8\n"
+"    b       loc_fc2868f4\n"
+"loc_fc2868e4:\n"
+"    bl      sub_fc2849dc\n"
+"    b       loc_fc2868f4\n"
+"loc_fc2868ea:\n"
+"    bl      sub_fc284b2e\n"
+"    b       loc_fc2868f4\n"
+"loc_fc2868f0:\n"
+"    bl      sub_fc284c4a\n"
+"loc_fc2868f4:\n"
 "    ldr     r0, [sp, #0x28]\n"
 "    add.w   r0, r0, #0x94\n"
 "    ldrd    r3, r2, [r0, #0x18]\n"
 "    ldr     r1, [r0]\n"
-"loc_fc292088:\n"
+"loc_fc286900:\n"
 "    sub.w   r0, r0, #0x90\n"
 "    blx     r3\n"
-"loc_fc29208e:\n"
+"loc_fc286906:\n"
 "    ldr     r0, [sp, #0x28]\n"
 "    ldr     r0, [r0]\n"
-"    cmp     r0, #0x10\n"
-"    beq     loc_fc2920b2\n"
-"    bgt     loc_fc2920a6\n"
+"    cmp     r0, #0x11\n"
+"    beq     loc_fc28692a\n"
+"    bgt     loc_fc28691e\n"
 "    cmp     r0, #1\n"
-"    beq     loc_fc2920b2\n"
+"    beq     loc_fc28692a\n"
 "    cmp     r0, #4\n"
-"    beq     loc_fc2920b2\n"
-"    cmp     r0, #0xe\n"
-"    bne     loc_fc2920e0\n"
-"    b       loc_fc2920b2\n"
-"loc_fc2920a6:\n"
-"    cmp     r0, #0x13\n"
-"    beq     loc_fc2920b2\n"
-"    cmp     r0, #0x18\n"
-"    beq     loc_fc2920b2\n"
-"    cmp     r0, #0x1b\n"
-"    bne     loc_fc2920e0\n"
-"loc_fc2920b2:\n"
+"    beq     loc_fc28692a\n"
+"    cmp     r0, #0xf\n"
+"    bne     loc_fc286958\n"
+"    b       loc_fc28692a\n"
+"loc_fc28691e:\n"
+"    cmp     r0, #0x14\n"
+"    beq     loc_fc28692a\n"
+"    cmp     r0, #0x19\n"
+"    beq     loc_fc28692a\n"
+"    cmp     r0, #0x1c\n"
+"    bne     loc_fc286958\n"
+"loc_fc28692a:\n"
 "    ldrsh.w r1, [r6]\n"
 "    mov     r2, sl\n"
 "    cmp     r1, sl\n"
-"    beq     loc_fc2920c4\n"
+"    beq     loc_fc28693c\n"
 "    ldrsh.w r0, [r6, #8]\n"
 "    cmp     r0, r2\n"
-"    bne     loc_fc2920d8\n"
-"loc_fc2920c4:\n"
+"    bne     loc_fc286950\n"
+"loc_fc28693c:\n"
 "    add     r0, sp, #0x10\n"
-"    bl      sub_fc2dd202\n"
+"    bl      sub_fc3160f2\n"
 "    ldrh.w  r0, [sp, #0x10]\n"
 "    strh.w  r0, [sp, #0x1c]\n"
 "    ldrh.w  r0, [sp, #0x18]\n"
-"    b       loc_fc2920dc\n"
-"loc_fc2920d8:\n"
+"    b       loc_fc286954\n"
+"loc_fc286950:\n"
 "    strh.w  r1, [sp, #0x1c]\n"
-"loc_fc2920dc:\n"
+"loc_fc286954:\n"
 "    strh.w  r0, [sp, #0x24]\n"
-"loc_fc2920e0:\n"
+"loc_fc286958:\n"
 "    cmp     r5, #1\n"
 "    ldr     r0, [sp, #0x28]\n"
-"    bne     loc_fc292118\n"
+"    bne     loc_fc286990\n"
 "    movs    r2, #0xc\n"
 "    ldr.w   r1, [r0, #0x94]\n"
 "    add.w   r1, r1, r1, lsl #1\n"
 "    add.w   r4, r0, r1, lsl #2\n"
-"    ldr     r0, =0x0005e458\n"
+"    ldr     r0, =0x0005c174\n"
 "    subs    r4, #8\n"
 "    add     r1, sp, #0x1c\n"
-"    blx     sub_fc2cf428\n"
-"    ldr     r0, =0x0005e458\n"
+"    blx     sub_fc2c7d88\n"
+"    ldr     r0, =0x0005c174\n"
 "    movs    r2, #0xc\n"
 "    add     r1, sp, #0x1c\n"
 "    adds    r0, #0xc\n"
-"    blx     sub_fc2cf428\n"
-"    ldr     r0, =0x0005e458\n"
+"    blx     sub_fc2c7d88\n"
+"    ldr     r0, =0x0005c174\n"
 "    movs    r2, #0xc\n"
 "    mov     r1, r4\n"
 "    adds    r0, #0x18\n"
-"    blx     sub_fc2cf428\n"
-"    b       loc_fc292162\n"
-"loc_fc292118:\n"
+"    blx     sub_fc2c7d88\n"
+"    b       loc_fc2869da\n"
+"loc_fc286990:\n"
 "    ldr     r0, [r0]\n"
 "    mov.w   r3, #1\n"
-"    cmp     r0, #0xb\n"
-"    bne     loc_fc292142\n"
+"    cmp     r0, #0xc\n"
+"    bne     loc_fc2869ba\n"
 "    movs    r2, #0\n"
 "    mov     r1, r3\n"
 "    strd    r2, r3, [sp]\n"
 "    movs    r0, #0\n"
 "    mov     r2, r3\n"
-"    bl      sub_fc28df02\n"
+"    bl      sub_fc28277c\n"
 "    movs    r3, #1\n"
 "    movs    r2, #0\n"
 "    mov     r1, r3\n"
 "    movs    r0, #0\n"
 "    strd    r2, r3, [sp]\n"
 "    mov     r2, r3\n"
-"    b       loc_fc29215e\n"
-"loc_fc292142:\n"
+"    b       loc_fc2869d6\n"
+"loc_fc2869ba:\n"
 "    movs    r2, #1\n"
 "    strd    r2, r3, [sp]\n"
 "    mov     r3, r2\n"
 "    mov     r1, r2\n"
 "    mov     r0, r2\n"
-"    bl      sub_fc28df02\n"
+"    bl      sub_fc28277c\n"
 "    movs    r3, #1\n"
 "    str     r3, [sp]\n"
 "    mov     r2, r3\n"
 "    mov     r1, r3\n"
 "    mov     r0, r3\n"
 "    str     r3, [sp, #4]\n"
-"loc_fc29215e:\n"
-"    bl      sub_fc28e036\n"
-"loc_fc292162:\n"
+"loc_fc2869d6:\n"
+"    bl      sub_fc2828a2\n"
+"loc_fc2869da:\n"
 "    ldr     r0, [sp, #0x28]\n"
-"    bl      sub_fc292b82\n"
-"    b       loc_fc291cea\n"
+"    bl      sub_fc287450\n"
+"    b       loc_fc28655e\n"
 ".ltorg\n"
     );
 }
-//loc_fc28edc8: -s=0xfc1e6633 -c=  -f=chdk
-void __attribute__((naked,noinline)) sub_fc28edc8_my() {
-asm volatile (
+
+// -f=chdk -s=0xfc283627 -c=87
+void __attribute__((naked,noinline)) sub_fc283626_my() {
+    asm volatile (
 "    push.w  {r4, r5, r6, r7, r8, lr}\n"
-"    ldr     r7, =0x0000d1b0\n"
+"    ldr     r7, =0x0000d7a4\n"
 "    movs    r1, #0x3e\n"
 "    mov     r4, r0\n"
 "    ldr     r0, [r7, #0x1c]\n"
-"    blx     sub_fc2cf3d8\n" // j_ClearEventFlag
+"    blx     sub_fc2c7dd0\n" // j_ClearEventFlag
 "    movs    r2, #0\n"
 "    ldrsh.w r0, [r4, #4]\n"
 "    movs    r3, #1\n"
 "    mov     r1, r2\n"
-"    bl      sub_fc28db94\n"
+"    bl      sub_fc2823c4\n"
 "    mov     r6, r0\n"
 "    ldrsh.w r0, [r4, #6]\n"
-"    bl      sub_fc28dd32\n"
+"    bl      sub_fc282562\n"
 "    ldrsh.w r0, [r4, #8]\n"
-"    bl      sub_fc28dd76\n"
+"    bl      sub_fc2825a6\n"
 "    ldrsh.w r0, [r4, #0xa]\n"
-"    bl      sub_fc28ddba\n"
+"    bl      sub_fc2825ea\n"
 "    ldrsh.w r0, [r4, #0xc]\n"
 "    movs    r1, #0\n"
-"    bl      sub_fc28ddfe\n"
+"    bl      sub_fc28262e\n"
 "    mov     r5, r0\n"
 "    ldr     r0, [r4]\n"
-"    ldr.w   r8, =0x0005e470\n"
-"    cmp     r0, #0xb\n"
-"    bne     loc_fc28ee1c\n"
+"    ldr.w   r8, =0x0005c18c\n"
+"    cmp     r0, #0xc\n"
+"    bne     loc_fc28367a\n"
 "    movs    r6, #0\n"
 "    mov     r5, r6\n"
-"    b       loc_fc28ee34\n"
-"loc_fc28ee1c:\n"
+"    b       loc_fc283692\n"
+"loc_fc28367a:\n"
 "    cmp     r6, #1\n"
-"    bne     loc_fc28ee34\n"
+"    bne     loc_fc283692\n"
 "    ldrsh.w r0, [r4, #4]\n"
 "    movs    r2, #2\n"
-"    ldr     r1, =0xfc28db2b\n"
-"    bl      sub_fc14d46a\n"
+"    ldr     r1, =0xfc28235b\n"
+"    bl      sub_fc0d748a\n"
 "    strh    r0, [r4, #4]\n"
 "    movs    r0, #0\n"
 "    str     r0, [r7, #0x28]\n"
-"    b       loc_fc28ee3a\n"
-"loc_fc28ee34:\n"
+"    b       loc_fc283698\n"
+"loc_fc283692:\n"
 "    ldrh.w  r0, [r8]\n"
 "    strh    r0, [r4, #4]\n"
-"loc_fc28ee3a:\n"
+"loc_fc283698:\n"
 "    cmp     r5, #1\n"
-"    bne     loc_fc28ee4c\n"
+"    bne     loc_fc2836aa\n"
 "    ldrsh.w r0, [r4, #0xc]\n"
 "    movs    r2, #0x20\n"
-"    ldr     r1, =0xfc28db7f\n"
-"    bl      sub_fc292c16\n"
-"    b       loc_fc28ee50\n"
-"loc_fc28ee4c:\n"
+"    ldr     r1, =0xfc2823af\n"
+"    bl      sub_fc2874e4\n"
+"    b       loc_fc2836ae\n"
+"loc_fc2836aa:\n"
 "    ldrh.w  r0, [r8, #8]\n"
-"loc_fc28ee50:\n"
+"loc_fc2836ae:\n"
 "    strh    r0, [r4, #0xc]\n"
 "    ldrsh.w r0, [r4, #6]\n"
-//"    bl      sub_fc16d658\n"
-"    bl      sub_fc16d658_my\n"// -->
-"ldr pc, =0xfc28ee5b\n" //continue in ROM thumb
-".ltorg\n"
+"    bl      sub_fc3a0c38_my\n" // ->
+"    ldr     pc, =0xfc2836b9\n" // continue in firmware, thumb
 /*
-fc28ee56: 	f6de fbff 	bl	sub_fc16d658
-fc28ee5a: 	f9b4 0008 	ldrsh.w	r0, [r4, #8]
-fc28ee5e: 	2101      	movs	r1, #1
- 
+"    ldrsh.w r0, [r4, #8]\n"
+"    movs    r1, #1\n"
+"    bl      sub_fc13098e\n"
+"    movs    r1, #0\n"
+"    add.w   r0, r4, #8\n"
+"    bl      sub_fc1309f6\n"
+"    ldrsh.w r0, [r4, #0xe]\n"
+"    bl      sub_fc0e47e8\n"
+"    cmp     r6, #1\n"
+"    movw    r4, #0xbb8\n"
+"    bne     loc_fc2836f8\n"
+"    ldr     r0, [r7, #0x1c]\n"
+"    movs    r1, #2\n"
+"    mov     r2, r4\n"
+"    blx     sub_fc2c7cd8\n" // j_WaitForAllEventFlag
+"    lsls    r0, r0, #0x1f\n"
+"    beq     loc_fc2836f8\n"
+"    movw    r2, #0xa28\n"
+"    ldr     r1, =0xfc282b88\n" //  *"ExpDrv.c"
+"    movs    r0, #0\n"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"loc_fc2836f8:\n"
+"    cmp     r5, #1\n"
+"    bne     loc_fc28371c\n"
+"    ldr     r0, [r7, #0x1c]\n"
+"    movs    r1, #0x20\n"
+"    mov     r2, r4\n"
+"    blx     sub_fc2c7cd8\n" // j_WaitForAllEventFlag
+"    lsls    r0, r0, #0x1f\n"
+"    beq     loc_fc28371c\n"
+"    movw    r2, #0xa2d\n"
+"    ldr     r1, =0xfc282b88\n" //  *"ExpDrv.c"
+"    pop.w   {r4, r5, r6, r7, r8, lr}\n"
+"    movs    r0, #0\n"
+"    b.w     loc_fc2c731c\n" // -> DebugAssert
+"loc_fc28371c:\n"
+"    pop.w   {r4, r5, r6, r7, r8, pc}\n"
 */
- );
+".ltorg\n"
+    );
 }
-//loc_fc16d658:
-void __attribute__((naked,noinline)) sub_fc16d658_my() {
+// -f=chdk -s=0xfc3a0c39 -c=35
+void __attribute__((naked,noinline)) sub_fc3a0c38_my() {
 asm volatile (
 "    push    {r4, r5, r6, lr}\n"
-"    ldr     r5, =0x0000cd4c\n"
+"    ldr     r5, =0x0000d218\n"
 "    mov     r4, r0\n"
 "    ldr     r0, [r5, #4]\n"
 "    cmp     r0, #1\n"
-"    beq     loc_fc16d670\n"
+"    beq     loc_fc3a0c50\n"
 "    movs    r0, #0\n"
 "    movw    r2, #0x16b\n"
-"    ldr     r1, =0xfc16d6b8\n" //  *"Shutter.c"
-"    blx     sub_fc2cf408\n" // j_DebugAssert
-"loc_fc16d670:\n"
+"    ldr     r1, =0xfc3a0c98\n" //  *"Shutter.c"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"loc_fc3a0c50:\n"
 "    ldr     r0, =0xfffff400\n"
 "    cmp     r4, r0\n"
-"    bne     loc_fc16d67a\n"
+"    bne     loc_fc3a0c5a\n"
 "    ldrsh.w r4, [r5, #2]\n"
-"loc_fc16d67a:\n"
+"loc_fc3a0c5a:\n"
 "    strh    r4, [r5, #2]\n"
 "    cmp     r4, r0\n"
-"    bne     loc_fc16d68c\n"
+"    bne     loc_fc3a0c6c\n"
 "    movs    r0, #0\n"
 "    movw    r2, #0x171\n"
-"    ldr     r1, =0xfc16d6b8\n" //  *"Shutter.c"
-"    blx     sub_fc2cf408\n" // j_DebugAssert
-"loc_fc16d68c:\n"
+"    ldr     r1, =0xfc3a0c98\n" //  *"Shutter.c"
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"loc_fc3a0c6c:\n"
 "    mov     r0, r4\n"
+//"    bl      _apex2us\n"
 "    bl      apex2us\n"
-//"    mov     r4, r0\n"
-//"    bl      sub_fc194f4e\n"
+//"    mov     r4, r0\n" // removed due to nullsub
+//"    bl      sub_fc14a2a2\n" // nullsub
 //"    mov     r0, r4\n"
-"    bl      sub_fc199bb8\n"
+"    bl      sub_fc14a830\n"
 "    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc16d6b2\n"
+"    beq     loc_fc3a0c92\n"
 "    pop.w   {r4, r5, r6, lr}\n"
 "    movs    r0, #0\n"
 "    movw    r2, #0x176\n"
-"    ldr     r1, =0xfc16d6b8\n" //  *"Shutter.c"
-//"    b.w     loc_fc2ce950\n"
-"ldr pc, =0xfc2ce951\n" //replace above with thumb
-"loc_fc16d6b2:\n"
+"    ldr     r1, =0xfc3a0c98\n" //  *"Shutter.c"
+//"    b.w     loc_fc2c731c\n" // -> DebugAssert
+"    blx     sub_fc2c7de8\n" // j_DebugAssert
+"loc_fc3a0c92:\n"
 "    pop     {r4, r5, r6, pc}\n"
 ".ltorg\n"
- );
+    );
 }
-
-
 

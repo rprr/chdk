@@ -147,7 +147,8 @@ int handle_jogdial() {
 
 void jogdial_control(int c) {
     jogdial_stopped = c;
-#endif}
+}
+#endif
 
 void my_kbd_read_keys() {
     kbd_update_key_state();

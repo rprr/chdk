@@ -205,7 +205,10 @@ asm volatile (
 "    ldreq   r3, =capt_seq_task\n"      // if so replace with our task function base ptr.
 "    orreq   r3, #1\n"                  // make sure it's a thumb address (may not be needed?)
 "    beq     exitHook\n"                // below compares not necessary if this check has found something.
+*/
 
+
+/*
 "    LDR     R0, =task_ExpDrv\n"
 "    CMP     R0, R3\n"
 "    itt     eq\n"
