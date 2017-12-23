@@ -83,23 +83,23 @@
 //  2639  0x0a4f In firmware but not in current modemap
 //  2641  0x0a51 In firmware but not in current modemap
 // 33295  0x820f In firmware but not in current modemap
-// Current modemap entry not found in firmware - MODE_VIDEO_M              2651
+// Current modemap entry not found in firmware - MODE_VIDEO_SHORT_CLIP     2652
 // Current modemap entry not found in firmware - MODE_VIDEO_IFRAME_MOVIE   2650
 // Current modemap entry not found in firmware - MODE_VIDEO_STD            2643
+// Current modemap entry not found in firmware - MODE_SPORTS              33288
 // Current modemap entry not found in firmware - MODE_HYBRID_AUTO         33298
 // Current modemap entry not found in firmware - MODE_CREATIVE_EFFECT     33299
-// Current modemap entry not found in firmware - MODE_SPORTS              33288
 // Current modemap entry not found in firmware - MODE_FIREWORK            16416
+// Current modemap entry not found in firmware - MODE_LOWLIGHT            16429
 // Current modemap entry not found in firmware - MODE_NIGHT_SCENE         16953
 // Current modemap entry not found in firmware - MODE_WINK_SELF_TIMER     16950
 // Current modemap entry not found in firmware - MODE_SMART_SHUTTER       16949
-// Current modemap entry not found in firmware - MODE_LOWLIGHT            16429
 // Current modemap entry not found in firmware - MODE_PORTRAIT            16406
 // Current modemap entry not found in firmware - MODE_MONOCHROME           8767
 // Current modemap entry not found in firmware - MODE_SOFTFOCUS            8765
 // Current modemap entry not found in firmware - MODE_TOY_CAMERA           8763
 // Current modemap entry not found in firmware - MODE_FISHEYE              8759
-// Current modemap entry not found in firmware - MODE_HDR                  8775
+// Current modemap entry not found in firmware - MODE_LIVE                33345
 // Current modemap entry not found in firmware - MODE_P                   32773
 
 // Values below can be overridden in 'stubs_min.S':

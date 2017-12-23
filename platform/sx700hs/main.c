@@ -31,21 +31,21 @@ int screen_rotated(void) {
         return !(physw_status[2] & 0x00000100);
 }
 
-
-#define NUM_FL      201
-#define NUM_DATA    1   // 1 entry per FL  
+#define NUM_FL      226 // TODO?
+#define NUM_DATA    2   // 2 words each entry, first is FL
 extern int focus_len_table[NUM_FL*NUM_DATA];
 
 // Conversion factor lens FL --> 35mm equiv
 // lens      35mm     CF
 // ----      ----     --
-// 3.8	     21.3     (21.3/3.8) * 38 = 213 
-// 247       1385.8   (1385.8/247)*38 = 213
-//cropfactor 5.61
-#define CF_EFL      213
-#define CF_EFL_DIV  38
+//  4.5      25       ( 25/  4.5) * 180 = 1000  (min FL)
+//135.0     750       (750/135.0) * 180 = 1000  (max FL)
+
+#define CF_EFL      1000
+#define CF_EFL_DIV  180
 
 const int zoom_points = NUM_FL;
+
 
 int get_effective_focal_length(int zp) {
     return (CF_EFL*get_focal_length(zp))/CF_EFL_DIV;
@@ -63,12 +63,12 @@ int get_zoom_x(int zp) {
 
 long get_vbatt_min()
 {
-    return 6450; //6700 is red in Canon display
+    return 3200; //3100 is red in Canon display
 }
 
 
 long get_vbatt_max()
 {
 
-    return 8250;  //8300
+    return 4060;  //8300
 }
