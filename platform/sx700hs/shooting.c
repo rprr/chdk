@@ -75,45 +75,42 @@ const ShutterSpeed shutter_speeds_table[] = {
 };
 
 const ISOTable iso_table[] = {
-	{  0,    0, " Auto", -1},
-	{  1,   80,    "80", -1},
-	{  2,  100,   "100", -1},
-	{  3,  200,   "200", -1},
-	{  4,  400,   "400", -1},
-	{  5,  800,   "800", -1},
-	{  6, 1600,  "1600", -1},
-	{  7, 3200,  "3200", -1},
+    {  0,    0, " Auto", -1},
+    {  1,  100,  "100", -1},
+    {  2,  200,  "200", -1},
+    {  3,  400,  "400", -1},
+    {  4,  800,  "800", -1},
+    {  5, 1600, "1600", -1},
+    {  6, 3200, "3200", -1},
 };
 
 const CapturemodeMap modemap[] = {
 { MODE_AUTO                 ,32768 },
-{ MODE_M                    ,32770 },
-{ MODE_AV                   ,32771 },
-{ MODE_TV                   ,32772 },
-{ MODE_P                    ,32773 },
-{ MODE_LIVE                 ,33345 }, // Creative shot, various sub modes all use same number
-{ MODE_FISHEYE              ,8759 },
-{ MODE_MINIATURE            ,8760 },
-{ MODE_TOY_CAMERA           ,8763 },
-{ MODE_SOFTFOCUS            ,8765 },
-{ MODE_MONOCHROME           ,8767 },
-{ MODE_SUPER_VIVID          ,8754 },
-{ MODE_POSTER_EFFECT        ,8755 },
-{ MODE_PORTRAIT             ,16406 },
-{ MODE_SMART_SHUTTER        ,16949 }, // smile detection
-{ MODE_WINK_SELF_TIMER      ,16950 },
-{ MODE_FACE_SELF_TIMER      ,16948 },
-{ MODE_NIGHT_SCENE          ,16953 }, // handheld night scene
-{ MODE_LOWLIGHT             ,16429 },
-{ MODE_SNOW                 ,16414 },
-{ MODE_FIREWORK             ,16416 },
-{ MODE_CREATIVE_EFFECT      ,33299 }, // Creative shot, various sub modes all use same number
-{ MODE_HYBRID_AUTO          ,33298 }, // like movie digest
-{ MODE_SPORTS               ,33288 },
-//{                         ,33297 }, // ? seems to be related to face ID
-{ MODE_VIDEO_STD             ,2643 }, // standard video on dial
-{ MODE_VIDEO_IFRAME_MOVIE    ,2650 },
-{ MODE_VIDEO_SHORT_CLIP     ,2652 },
+{ MODE_M                    ,32769 },
+{ MODE_AV                   ,32770 },
+{ MODE_TV                   ,32771 },
+{ MODE_P                    ,32772 },
+{ MODE_LIVE                 ,33340 }, // Creative shot, various sub modes all use same number
+{ MODE_FISHEYE              ,8754 },
+{ MODE_MINIATURE            ,8755 },
+{ MODE_TOY_CAMERA           ,8758 },
+{ MODE_SOFTFOCUS            ,8760 },
+{ MODE_MONOCHROME           ,8762 },
+{ MODE_SUPER_VIVID          ,8749 },
+{ MODE_POSTER_EFFECT        ,8750 },
+{ MODE_PORTRAIT             ,16404 },
+{ MODE_SMART_SHUTTER        ,16944 }, // smile detection
+{ MODE_HIGHSPEED_BURST       ,16393 }, // 4 hq burst shots
+{ MODE_NIGHT_SCENE          ,16948 }, // handheld night scene
+{ MODE_LOWLIGHT             ,16424 },
+{ MODE_SNOW                 ,16412 },
+{ MODE_FIREWORK             ,16414 },
+{ MODE_CREATIVE_EFFECT      ,33297 }, // Creative shot, various sub modes all use same number
+{ MODE_HYBRID_AUTO          ,33296 }, // like movie digest
+{ MODE_SPORTS               ,33287 },
+{ MODE_VIDEO_STD             ,2634 }, // standard video on dial
+{ MODE_VIDEO_IFRAME_MOVIE    ,2641 },
+{ MODE_VIDEO_SUPER_SLOW     ,2639 }, // super slow mo
 };
 
 #include "../generic/shooting.c"
