@@ -8,12 +8,12 @@ DEF(canon_menu_active             ,0x0000c7b0+0x4) // found by ftm  @fc3d64c0, v
 
 // via fc0d1ce4 (similar g7x fc13b3da), searching mem near 0x86de for known vp buffer 0x42cafe00
 // Contains viewport address that updates at ~30fps in rec mode, 0 or last rec value in pb
-DEF(current_viewport_buffer       ,0x00008794) // xfound
-//FAKEDEF(current_viewport_buffer       ,1)
+//DEF(current_viewport_buffer       ,0x00008794) // xfound
+FAKEDEF(current_viewport_buffer       ,1)
 
 // Below Could not find ftm
-DEF(viewport_buffers              ,0xfc5befd8) // xfound from search 0xfc500000-0xfc800000 for values seen in current_*
-//FAKEDEF(viewport_buffers              ,1)
+//DEF(viewport_buffers              ,0xfc5befd8) // xfound from search 0xfc500000-0xfc800000 for values seen in current_*
+FAKEDEF(viewport_buffers              ,1)
 
 // originally by searching https://chdk.setepontos.com/index.php?topic=12532.msg129914#msg129914
 // fc19194a from "ImgDDev.c", similar to g7x
@@ -43,8 +43,8 @@ DEF(dial_positions,0x0000fe84) // xfound from sub_fc08b6f6, Jogdial at 0x0000fe8
 
 // Stuff below copied from sx60hs for compilation
 // Camera has 2 RAW buffers @ ?? & ??
-DEF(raw_buffers                             ,0xfc5d9098) // Found by FTM @fc160e42 
-DEF(active_raw_buffer                       ,0x0000baf4) // Found  by FTM @0xfc12fe98, 0xffffffff when uninited (0xC offset added similar to sx280)
+//DEF(raw_buffers                             ,0xfc5d9098) // Found by FTM @fc160e42 
+//DEF(active_raw_buffer                       ,0x0000baf4) // Found  by FTM @0xfc12fe98, 0xffffffff when uninited (0xC offset added similar to sx280)
 //DEF(raw_buffers_canon_raw                   ,0xfc631864) //xfound near DevelopAddress.c
 //DEF(raw_buffers_jpeg                         ,0xfc631bf4) //xfound near DevelopPipeline.c 0xfc631c00
 //DEF(displaytype,                              0x9284) // 0x923c + 0x48 xfound @0xfc304708 (42 refs)
