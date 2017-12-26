@@ -20,4 +20,5 @@ PRIMARY.BIN
 *.syms
 *.a
 *.dump
-platform/sx700hs/sub/100e/bin_compat.h
+/platform/sx700hs/sub/100e/bin_compat.h
+*stubs_auto.S

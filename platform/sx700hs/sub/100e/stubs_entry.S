@@ -60,47 +60,12 @@
 
 // canon_mode_list 0xfc867474 Found @0xfc3761bc
 // Check modemap values from 'platform/CAMERA/shooting.c':
-// 32769  0x8001 In firmware but not in current modemap
-// 33340  0x823c In firmware but not in current modemap
-//  8758  0x2236 In firmware but not in current modemap
-//  8762  0x223a In firmware but not in current modemap
-//  8749  0x222d In firmware but not in current modemap
-//  8750  0x222e In firmware but not in current modemap
 // 33335  0x8237 In firmware but not in current modemap
-// 16412  0x401c In firmware but not in current modemap
-// 16404  0x4014 In firmware but not in current modemap
 // 32831  0x803f In firmware but not in current modemap
 // 32832  0x8040 In firmware but not in current modemap
-// 16393  0x4009 In firmware but not in current modemap
-// 16424  0x4028 In firmware but not in current modemap
 // 16943  0x422f In firmware but not in current modemap
 // 16945  0x4231 In firmware but not in current modemap
-// 16944  0x4230 In firmware but not in current modemap
-// 33287  0x8207 In firmware but not in current modemap
-// 33296  0x8210 In firmware but not in current modemap
-// 33297  0x8211 In firmware but not in current modemap
-//  2634  0x0a4a In firmware but not in current modemap
-//  2639  0x0a4f In firmware but not in current modemap
-//  2641  0x0a51 In firmware but not in current modemap
 // 33295  0x820f In firmware but not in current modemap
-// Current modemap entry not found in firmware - MODE_VIDEO_SHORT_CLIP     2652
-// Current modemap entry not found in firmware - MODE_VIDEO_IFRAME_MOVIE   2650
-// Current modemap entry not found in firmware - MODE_VIDEO_STD            2643
-// Current modemap entry not found in firmware - MODE_SPORTS              33288
-// Current modemap entry not found in firmware - MODE_HYBRID_AUTO         33298
-// Current modemap entry not found in firmware - MODE_CREATIVE_EFFECT     33299
-// Current modemap entry not found in firmware - MODE_FIREWORK            16416
-// Current modemap entry not found in firmware - MODE_LOWLIGHT            16429
-// Current modemap entry not found in firmware - MODE_NIGHT_SCENE         16953
-// Current modemap entry not found in firmware - MODE_WINK_SELF_TIMER     16950
-// Current modemap entry not found in firmware - MODE_SMART_SHUTTER       16949
-// Current modemap entry not found in firmware - MODE_PORTRAIT            16406
-// Current modemap entry not found in firmware - MODE_MONOCHROME           8767
-// Current modemap entry not found in firmware - MODE_SOFTFOCUS            8765
-// Current modemap entry not found in firmware - MODE_TOY_CAMERA           8763
-// Current modemap entry not found in firmware - MODE_FISHEYE              8759
-// Current modemap entry not found in firmware - MODE_LIVE                33345
-// Current modemap entry not found in firmware - MODE_P                   32773
 
 // Values below can be overridden in 'stubs_min.S':
 DEF(ctypes                            ,0xfc5149c8)
