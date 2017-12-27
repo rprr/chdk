@@ -96,50 +96,43 @@ void __attribute__((noinline)) mykbd_task() {
     _ExitTask();
 }
 
-// sx60hs jogdial hw counter (19 bits) 0xd9854004 
+// Copied from sx710hs
+// jogdial hw counters (19 bits) are at 0xd9854004 and 0xd9855004, use fw func t
+// o read + sign extend them
 // 0x7fff8 .. 0x7fffc .. 0 (start pos) .. 4
-// intermediate positions are also available, but they are ignored by the fw for a good reason
+// intermediate positions are also available, but they are ignored by the fw for
+//  a good reason
 #ifdef CAM_HAS_JOGDIAL
-int jogdial_stopped = 0;
 extern int _get_dial_hw_position(int dial);
+#define DIAL_HW_REAR  4
 int get_dial_hw_position(int dial)
 {
     // mask low bits
     return _get_dial_hw_position(dial)&~3;
 }
+int jogdial_stopped=0;
 
-extern long dial_positions[4];
-extern long jog_hw_pos;
-int get_jogdial_counter() {
-    int p;
-   p = get_dial_hw_position(5);
-//    _LogCameraEvent(0x20,"jd: p: %08x %08x ",jog_hw_pos, p);
-//    p = jog_hw_pos & 0x7fffc;
-/*
-    if (p > 0x3fffc) {
-        p |= 0xfff80000;
-    }
-*/
-    return p;
-}
+extern long dial_positions[2];
+
 long get_jogdial_direction(void) {
-    static int new_jogdial=0, old_jogdial=0 ;
-
+    static int new_jogdial=0, old_jogdial=0;
+    
     old_jogdial=new_jogdial;
-    new_jogdial=get_jogdial_counter();
+    new_jogdial=get_dial_hw_position(DIAL_HW_REAR);
 
-//    _LogCameraEvent(0x20,"gjdd:  f:%08x %08x", old_jogdial, new_jogdial );
-    if (old_jogdial>new_jogdial) return JOGDIAL_RIGHT;
-    else if (old_jogdial<new_jogdial) return JOGDIAL_LEFT;
+// Reverse directions
+//    if (old_jogdial>new_jogdial) return JOGDIAL_RIGHT; 
+//    else if (old_jogdial<new_jogdial) return JOGDIAL_LEFT;
+    if (old_jogdial>new_jogdial) return JOGDIAL_LEFT; 
+    else if (old_jogdial<new_jogdial) return JOGDIAL_RIGHT;
     else return 0;
 }
+
 int handle_jogdial() {
     // return 0 to prevent fw dial handler
-//    _LogCameraEvent(0x20,"hjd: %i %08x", jogdial_stopped, dial_positions[0]);
     if (jogdial_stopped) {
         // update positions in RAM
-        dial_positions[0] = dial_positions[2] = get_jogdial_counter();
-
+        dial_positions[0] = dial_positions[1] = get_dial_hw_position(DIAL_HW_REAR);
         return 0;
     }
     return 1;
@@ -154,12 +147,9 @@ void my_kbd_read_keys() {
     kbd_update_key_state();
     kbd_update_physw_bits();
 }
-static long *odst;
+
 void kbd_fetch_data(long *dst)
 {
     _GetKbdState(dst);
     _kbd_read_keys_r2(dst);
-//     if (dst[0] != 0x00077fff || dst[1] != 0x20808030 || dst[2] != 0x1480043e ) {
- //     _LogCameraEvent(0x20,"kb: %08x %08x %08x",  dst[0], dst[1], dst[2]);
-  //  } 
 }

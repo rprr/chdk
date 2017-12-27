@@ -15,8 +15,11 @@ extern void task_CaptSeq();
 extern void task_InitFileModules();
 extern void task_RotaryEncoder();
 extern void task_MovieRecord();
-extern void task_LiveImageTask();
+//extern void task_LiveImageTask();
 extern void task_ExpDrv();
+
+extern void handle_jogdial();
+
 
 /*----------------------------------------------------------------------
     spytask
@@ -107,12 +110,12 @@ void CreateTask_blinker()
  */
 void init_required_fw_features(void) {
    extern void _init_focus_eventflag();
-// FTM   extern void _init_nd_eventflag();
+   extern void _init_nd_eventflag();
 //   extern void _init_nd_semaphore();
     //extern void _init_zoom_semaphore(); // for MoveZoomLensWithPoint
 
     _init_focus_eventflag();
-// FTM    _init_nd_eventflag();
+    _init_nd_eventflag();
     // for MoveIrisWithAv, based on fc3d1a74 (but without registers eventprocs)
     extern int av_override_semaphore;
     extern int _CreateBinarySemaphoreStrictly(int x, int y);
@@ -676,129 +679,127 @@ void __attribute__((naked,noinline)) init_file_modules_task() {
 
 #ifdef CAM_HAS_JOGDIAL
 // jogdial override code called from kbd task
+// sx700v100e -f=chdk -s=kbd_p2_f -c=77
+// kbd_p2_f 0xfc079e89
 void __attribute__((naked,noinline)) kbd_p2_f_my() { 
-
-// kbd_p2_f 0xfc072e35
-
    asm volatile(
-"    stmdb   sp!, {r4, r5, r6, r7, r8, lr}\n"
-//"    push.w  {r4, r5, r6, r7, r8, lr}\n"
-"    ldr     r6, =0x00033f88\n"
+"    push.w  {r4, r5, r6, r7, r8, lr}\n"
+"    ldr     r6, =0x000308d4\n"
 "    sub     sp, #0x18\n"
 "    add     r7, sp, #8\n"
 "    subs    r6, #0xc\n"
-"    b       loc_fc072e76\n"
-
-"loc_fc072e42:\n"
-"    ldr     r1, =0x00033f88\n"
+"    b       loc_fc079eca\n"
+"loc_fc079e96:\n"
+"    ldr     r1, =0x000308d4\n"
 "    add     r3, sp, #8\n"
 "    ldrb.w  r0, [sp, #4]\n"
 "    add     r2, sp, #0x14\n"
 "    subs    r1, #0x18\n"
-"    bl      sub_fc070b4e\n"
-"    cbnz    r0, loc_fc072e5c\n"
+"    bl      sub_fc06e51c\n"
+"    cbnz    r0, loc_fc079eb0\n"
 "    ldr     r1, [sp, #0x14]\n"
 "    movs    r0, #0\n"
-"    bl      sub_fc072da6\n"
-
-"loc_fc072e5c:\n"
+"    bl      sub_fc079dfa\n"
+"loc_fc079eb0:\n"
 "    movs    r0, #2\n"
-"loc_fc072e5e:\n"
+"loc_fc079eb2:\n"
 "    ldr.w   r1, [r7, r0, lsl #2]\n"
-"    cbz     r1, loc_fc072e6e\n"
+"    cbz     r1, loc_fc079ec2\n"
 "    ldr.w   r2, [r6, r0, lsl #2]\n"
 "    bics    r2, r1\n"
 "    str.w   r2, [r6, r0, lsl #2]\n"
-"loc_fc072e6e:\n"
+"loc_fc079ec2:\n"
 "    subs    r0, r0, #1\n"
 "    sxtb    r0, r0\n"
 "    cmp     r0, #0\n"
-"    bge     loc_fc072e5e\n"
-
-"loc_fc072e76:\n"
-"    ldr     r0, =0x00033f88\n"
+"    bge     loc_fc079eb2\n"
+"loc_fc079eca:\n"
+"    ldr     r0, =0x000308d4\n"
 "    add     r1, sp, #4\n"
 "    subs    r0, #0xc\n"
-"    bl      sub_fc07084c\n"
+"    bl      sub_fc06e268\n"
 "    cmp     r0, #0\n"
-"    bne     loc_fc072e42\n"
-"    ldr.w   r8, =0x00033f88\n"
+"    bne     loc_fc079e96\n"
+"    ldr.w   r8, =0x000308d4\n"
 "    movs    r4, #0\n"
-"loc_fc072e8a:\n"
+"loc_fc079ede:\n"
 "    movs    r5, #0\n"
 "    ldr.w   r0, [r6, r4, lsl #2]\n"
 "    ldr.w   r1, [r8, r4, lsl #2]\n"
 "    ands    r0, r1\n"
 "    str.w   r0, [r6, r4, lsl #2]\n"
-"    b       loc_fc072ee2\n"
-"loc_fc072e9c:\n"
+"    b       loc_fc079f36\n"
+"loc_fc079ef0:\n"
 "    lsrs    r0, r5\n"
 "    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc072eda\n"
-"    ldr     r1, =0x00033f88\n"
+"    beq     loc_fc079f2e\n"
+"    ldr     r1, =0x000308d4\n"
 "    add.w   r0, r5, r4, lsl #5\n"
 "    add     r3, sp, #8\n"
 "    subs    r1, #0x18\n"
 "    add     r2, sp, #0x14\n"
 "    uxtb    r0, r0\n"
-"    bl      sub_fc070b4e\n"
-"    cbnz    r0, loc_fc072ebe\n"
+"    bl      sub_fc06e51c\n"
+"    cbnz    r0, loc_fc079f12\n"
 "    ldr     r1, [sp, #0x14]\n"
 "    movs    r0, #1\n"
-"    bl      sub_fc072da6\n"
-"loc_fc072ebe:\n"
+"    bl      sub_fc079dfa\n"
+"loc_fc079f12:\n"
 "    mov     r0, r4\n"
-"    b       loc_fc072ed6\n"
-
-"loc_fc072ec2:\n"
+"    b       loc_fc079f2a\n"
+"loc_fc079f16:\n"
 "    ldr.w   r1, [r7, r0, lsl #2]\n"
-"    cbz     r1, loc_fc072ed2\n"
+"    cbz     r1, loc_fc079f26\n"
 "    ldr.w   r2, [r6, r0, lsl #2]\n"
 "    bics    r2, r1\n"
 "    str.w   r2, [r6, r0, lsl #2]\n"
-"loc_fc072ed2:\n"
+"loc_fc079f26:\n"
 "    adds    r0, r0, #1\n"
 "    sxtb    r0, r0\n"
-"loc_fc072ed6:\n"
+"loc_fc079f2a:\n"
 "    cmp     r0, #3\n"
-"    blt     loc_fc072ec2\n"
-"loc_fc072eda:\n"
+"    blt     loc_fc079f16\n"
+"loc_fc079f2e:\n"
 "    ldr.w   r0, [r6, r4, lsl #2]\n"
 "    adds    r5, r5, #1\n"
 "    uxtb    r5, r5\n"
-"loc_fc072ee2:\n"
+"loc_fc079f36:\n"
 "    cmp     r0, #0\n"
-"    bne     loc_fc072e9c\n"
+"    bne     loc_fc079ef0\n"
 "    adds    r4, r4, #1\n"
 "    sxtb    r4, r4\n"
 "    cmp     r4, #3\n"
-"    blt     loc_fc072e8a\n"
-//"    bl      sub_fc0706e8\n"
-"    bl      sub_fc0706e8_my\n"     // ->
+"    blt     loc_fc079ede\n"
+//"    bl      sub_fc06e104\n"
+"    bl      sub_fc06e104_my\n" // --->>
 "    add     sp, #0x18\n"
 "    pop.w   {r4, r5, r6, r7, r8, pc}\n"
+
 ".ltorg\n"
     );
 
 }
+
 //extern void handle_jogdial();
-void __attribute__((naked,noinline)) sub_fc0706e8_my() {
+//sx700100e -f=chdk -s=0xfc06e105 -c=9
+void __attribute__((naked,noinline)) sub_fc06e104_my() {
     asm volatile(
 "    push    {r4, lr}\n"
-"    ldr     r4, =0x0000970c\n"
+"    ldr     r4, =0x00009334\n"
+"    ldr     r0, [r4, #8]\n"
+"    bl      sub_fc070a80\n"
+"    bl      sub_fc0e4108\n"
 "    ldr     r0, [r4, #0xc]\n"
-"    bl      sub_fc072250\n"
-"    bl      sub_fc0f9118\n"
-"    ldr     r0, [r4, #0x10]\n"
-"    bl      sub_fc07216c\n"
-//"    ldmia.w sp!, {r4, lr}\n" // - (reordered below)
-//"    b.w     loc_fc05cbf6\n"  // - (reordered below)
+"    bl      sub_fc07099c\n"
+//"    pop.w   {r4, lr}\n"      // - (reordered below) 
+//"    b.w     loc_fc06bf5e\n"  // - (reordered below)
 "    bl      handle_jogdial\n"  // +
 "    cmp     r0, #0\n"          // +
 "    beq     no_scroll\n"       // +
-"    bl      sub_fc072490\n"    // handles scrollwheel(s), void function, no args
+"    bl      sub_fc06bf5e\n"    // handles scrollwheel(s), void function, no args
 "no_scroll:\n"                  // +
 "    pop     {r4, pc}\n"        // +
+".ltorg\n"
     );
 }
 #endif

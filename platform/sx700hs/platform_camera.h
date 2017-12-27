@@ -30,7 +30,7 @@
 
     #define CAM_AV_OVERRIDE_IRIS_FIX            1
 
-// FTM    #define CAM_HAS_ND_FILTER                   1            // Camera has built-in ND filter (in addition to iris)
+    #define CAM_HAS_ND_FILTER                   1            // Camera has built-in ND filter (in addition to iris)
 
 //    #undef  CAM_KEY_PRESS_DELAY
 //    #define CAM_KEY_PRESS_DELAY                 60          // delay after a press
@@ -71,7 +71,7 @@
     #define CAM_IS_VID_REC_WORKS 1 // Define if the 'is_video_recording()' function works
 
 
-    //#define CAM_HAS_JOGDIAL                     1
+    #define CAM_HAS_JOGDIAL                     1
 
 #undef  CAM_UNCACHED_BIT
 #define CAM_UNCACHED_BIT  0x40000000 // Found @0xfc148c98
