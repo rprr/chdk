@@ -30,7 +30,7 @@
 
     #define CAM_AV_OVERRIDE_IRIS_FIX            1
 
-    #define CAM_HAS_ND_FILTER                   1            // Camera has built-in ND filter (in addition to iris)
+// FTM    #define CAM_HAS_ND_FILTER                   1            // Camera has built-in ND filter (in addition to iris)
 
 //    #undef  CAM_KEY_PRESS_DELAY
 //    #define CAM_KEY_PRESS_DELAY                 60          // delay after a press
@@ -202,3 +202,7 @@
     #define CAM_IS_VID_REC_WORKS 1
     #define CAM_HOTSHOE_OVERRIDE 1
 //--------------------------------------------------
+
+// From tests
+  
+    #define CAM_MARKET_ISO_BASE        200

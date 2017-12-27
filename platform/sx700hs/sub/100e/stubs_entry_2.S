@@ -25,8 +25,8 @@ NHSTUB(GetFocusLensSubjectDistanceFromLens,		0xfc2dcf41) // call at 0xfc2bd058 v
 //NHSTUB(GetFocusLensSubjectDistanceFromLens,		NULL_SUB) 
 
 // FTM sx700hs based on ref to fc2e117c (ref "%s/%3d%s") -> sub_fc3e690e, which refs  "___%02d" and "_%02d%02d"
-//NHSTUB(GetImageFolder,							0xfc2e07d9) // FTM found
-NHSTUB(GetImageFolder,NULL_SUB)
+NHSTUB(GetImageFolder,							0xfc2e07d9) // FTM found
+//NHSTUB(GetImageFolder,NULL_SUB)
 
 NHSTUB(apex2us,									0xfc313637) // FTM Shutter.c asserts @ fc1495ca -> fc149620 instructions similar to g7x fc3826c4
 //NHSTUB(apex2us,NULL_SUB)
@@ -47,7 +47,8 @@ NHSTUB(get_dial_hw_position,					0xfc364be9) // FTM kbd_p1_f_cont->fc06e0ce->fc0
 
 // required because DryOS >=54 functions assert on unitialized event flag, sem etc 
 // see https://chdk.setepontos.com/index.php?topic=12516.0
-NHSTUB(init_focus_eventflag,	0xfc45d486) // FTM InitializeAdjustmentSystem->fc40e0e4->fc45d486 event flag matches MoveFocusLensToDistance 
+//NHSTUB(init_focus_eventflag,	0xfc45d284) // FTM InitializeAdjustmentSystem->fc40e0e4->fc45d486 event flag matches MoveFocusLensToDistance 
+NHSTUB(init_focus_eventflag,	0xfc45d487) // FTM InitializeAdjustmentSystem->fc40e0e4->fc45d486 event flag matches MoveFocusLensToDistance 
 //NHSTUB(init_focus_eventflag, NULL_SUB)
 
 NHSTUB(init_nd_eventflag,		0xfc45d591) // FTM InitializeAdjustmentSystem->fc542300->fc45d590 event flag matches PutInNdFilter 

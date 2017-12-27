@@ -106,13 +106,13 @@ void CreateTask_blinker()
     Execute this only once
  */
 void init_required_fw_features(void) {
-    extern void _init_focus_eventflag();
-    extern void _init_nd_eventflag();
+   extern void _init_focus_eventflag();
+// FTM   extern void _init_nd_eventflag();
 //   extern void _init_nd_semaphore();
     //extern void _init_zoom_semaphore(); // for MoveZoomLensWithPoint
 
     _init_focus_eventflag();
-    _init_nd_eventflag();
+// FTM    _init_nd_eventflag();
     // for MoveIrisWithAv, based on fc3d1a74 (but without registers eventprocs)
     extern int av_override_semaphore;
     extern int _CreateBinarySemaphoreStrictly(int x, int y);
@@ -588,7 +588,7 @@ void __attribute__((naked,noinline)) task_Startup_my() {
 //"    bl      sub_fc07a0e2\n" // Canon FW
 "    bl      sub_fc07a0e2_my\n" // CHDK
 "    bl      CreateTask_spytask\n"
-//"    bl      init_required_fw_features\n"
+"    bl      init_required_fw_features\n"
 //"    bl      CreateTask_blinker\n"
 "    bl      sub_fc25b2b0\n"
 "    bl      sub_fc11a928\n"

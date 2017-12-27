@@ -29,7 +29,7 @@ DEF(recreview_hold                ,0x8ebc) // found by ftm 0x8df0 + 0x80 + 0x4c
 
 // based on search for 4500 100
 // 112 entries, 2 words each, first is fl
-DEF(focus_len_table                ,0xfdf2ce95) //found by ftm thanks to reyalp
+DEF(focus_len_table                ,0xfdf2ce94) //found by ftm thanks to reyalp
 DEF(bitmap_buffer, 0xc754+0x34) // found by ftm struct starts @ 0xc754, from sub @0xfc30ccdc after "VTM SW", +0x34 @fc30cd74
 DEF(dial_positions,0x0000fe84) // xfound from sub_fc08b6f6, Jogdial at 0x0000fe84 0x0000fe88
 //FAKEDEF(dial_positions,1)
@@ -43,8 +43,8 @@ DEF(dial_positions,0x0000fe84) // xfound from sub_fc08b6f6, Jogdial at 0x0000fe8
 
 // Stuff below copied from sx60hs for compilation
 // Camera has 2 RAW buffers @ ?? & ??
-//DEF(raw_buffers                             ,0xfc5d9098) // Found by FTM @fc160e42 
-//DEF(active_raw_buffer                       ,0x0000baf4) // Found  by FTM @0xfc12fe98, 0xffffffff when uninited (0xC offset added similar to sx280)
+DEF(raw_buffers                             ,0xfc5d9098) // Found by FTM @fc160e42 
+DEF(active_raw_buffer                       ,0x0000baf4) // Found  by FTM @0xfc12fe98, 0xffffffff when uninited (0xC offset added similar to sx280)
 //DEF(raw_buffers_canon_raw                   ,0xfc631864) //xfound near DevelopAddress.c
 //DEF(raw_buffers_jpeg                         ,0xfc631bf4) //xfound near DevelopPipeline.c 0xfc631c00
 //DEF(displaytype,                              0x9284) // 0x923c + 0x48 xfound @0xfc304708 (42 refs)

@@ -87,6 +87,7 @@ DEF_CONST(uiprop_count                      ,0x0000009d) // Found @0xfc0bb660
 //NHSTUB(Fflush_Fut                           ,0x00000000) //  0        *** != 0xfc2d7dbd
 //NHSTUB(GetDrive_TotalClusters               ,0x00000000) //  0        *** != 0xfc307985
 //NHSTUB(GetFocusLensSubjectDistanceFromLens  ,0x00000000) //  0        *** != 0xfc2dcf41
+//NHSTUB(GetImageFolder                       ,0x00000000) //  0        *** != 0xfc2e07d9
 //NHSTUB(MakeSDCardBootable                   ,0x00000000) //  0        *** != 0xfc307d93
 //NHSTUB(RenameFile_Fut                       ,0x00000000) //  0        *** != 0xfc2d7b45
 //NHSTUB(SetFileAttributes                    ,0x00000000) //  0        *** != 0xfc308145
@@ -122,7 +123,6 @@ NHSTUB(GetCurrentAvValue                      ,0xfc12a525) //  0
 NHSTUB(GetDrive_ClusterSize                   ,0xfc30747b) //  0
 NHSTUB(GetDrive_FreeClusters                  ,0xfc3079a9) //  0
 NHSTUB(GetFocusLensSubjectDistance            ,0xfc2dcc47) //  0
-//NHSTUB(GetImageFolder                       ,0x00000000) //  0            == 0x00000000
 NHSTUB(GetKbdState                            ,0xfc06e207) //  0
 NHSTUB(GetMemInfo                             ,0xfc3d4cdd) //  0
 NHSTUB(GetOpticalTemperature                  ,0xfc124587) //  0

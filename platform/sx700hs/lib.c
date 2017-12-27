@@ -61,44 +61,73 @@ void JogDial_CCW(void) {
     _PostLogicalEventToUI(0x873, 1);    //RotateJogDialLeft
 }
 
-// updated by using function in capt_seq, valid between shot start and raw hook end
-extern  char*   current_raw_addr;
-char *hook_raw_image_addr()
+// Copied from G16
+// ***  RAW / DNG handling ***
+
+extern  int     active_raw_buffer;
+extern  char *  raw_buffers[];
+//extern  char *  raw_buffers_jpeg[];
+
+char * hook_raw_image_addr()
 {
-    if(current_raw_addr) {
-        return current_raw_addr;
+    int i=0 ;                               // AUTO mode uses just 1 buffer
+/*
+    if(( camera_info.state.mode_shooting != MODE_AUTO ) &&
+       ( camera_info.state.mode_shooting != MODE_HYBRID_AUTO ))
+    {
+        i=active_raw_buffer&3;              // indexes three buffers
+
+        if(shooting_get_prop(PROPCASE_IMAGE_FORMAT) == 1)
+        {
+            return raw_buffers_jpeg[i];     // canon raw disabled
+        }
     }
-    // TODO fallback if current_raw_addr not set. Would be better to fail, but calling code doesn't check
-    return  (char *)0x41574352; // CRAW BUF = *fc56898c
+*/
+    return raw_buffers[i];                  // canon raw enabled or AUTO mode
+
+    // **FIXME** scene mode addresses might not be right
 }
 
-// TODO - camera has at least 3 raw buffers
-/*
-0x42f69e00
-0x44da0100
-0x46bd6400
-*/
-/*
 char *hook_alt_raw_image_addr()
 {
-    return raw_buffers[((active_raw_buffer&1)^1)];
-}
+    int i=0 ;                               // AUTO mode uses just 1 buffer
+/*
+    if(( camera_info.state.mode_shooting != MODE_AUTO ) &&
+       ( camera_info.state.mode_shooting != MODE_HYBRID_AUTO ))
+    {
+        int i = (active_raw_buffer&3)-1;    // indexes three buffers
+        if (i<0) i=2;
+
+        if(shooting_get_prop(PROPCASE_IMAGE_FORMAT) == 1)
+        {
+            return raw_buffers_jpeg[i];     // canon raw disabled
+        }
+    }
 */
+    return raw_buffers[i];
+}
+
+// ***  Viewport buffer handling ***
+
+extern void* viewport_buffers[];
+extern void *current_viewport_buffer;
 
 void *vid_get_viewport_fb() {
+    //return viewport_buffers[0];      // From G16 copy
     return (void*)0x43312300; // FFTM "first" viewport adr, "VRAM Address  : %p", contains d6 uyvy
 }
+
 /*
 playback viewport
 */
+
 void *vid_get_viewport_fb_d()    {
     // based on suggestion from 62ndidiot in https://chdk.setepontos.com/index.php?topic=12532.msg129914#msg129914
     extern void *current_fb_d;
     return current_fb_d;
 } 
 
-extern void* viewport_buffers[];
-/*
+/* Below numbers for sx710
 four viewport buffers @0xfc5befd8
 0x42cafe00
 0x42d5e600
@@ -106,7 +135,7 @@ four viewport buffers @0xfc5befd8
 0x42ebb600
 */
 
-extern void *current_viewport_buffer;
+
 void *vid_get_viewport_live_fb()
 {
 // current_viewport_buffer assummed not most recent, like g7x

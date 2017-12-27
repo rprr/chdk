@@ -3,64 +3,65 @@
 #include "core.h"
 
 // debug
-#define CAPTSEQ_DEBUG_LOG 1
-extern void _LogCameraEvent(int id,const char *fmt,...);
+//#define CAPTSEQ_DEBUG_LOG 1
 
 #define USE_STUBS_NRFLAG 1
-#define NR_AUTO (-1) // default value if NRTBL.SetDarkSubType not used is -1 (0 probalby works the same), set to enable auto
+#define NR_AUTO (0) // For sx700; method from G16 -- default value if NRTBL.SetDarkSubType not used is -1 (0 probalby works the same), set to enable auto
+static long *nrflag = (long*)0x0001b8e4 ; // FTM 0x0001b8e0 + 0x04   found at 0xfc3145fc
 
 #ifdef CAPTSEQ_DEBUG_LOG
-//extern int active_raw_buffer;
-
+extern void _LogCameraEvent(int id,const char *fmt,...);   // debug
+extern int active_raw_buffer;
 extern char *hook_raw_image_addr(void);
 
-void log_capt_seq(int m)
+void log_remote_hook(void)
 {
-    _LogCameraEvent(0x60,"cs m:%d rb:0x%08x i:%04d",
+    _LogCameraEvent(0x60,"Remote Hook:");
+}
+
+void log_raw_hook(void) {
+#ifdef VARIABLE_RAW_BUFFER
+    _LogCameraEvent(0x60,"Raw Hook: arb:%d rb:0x%08x rbc:0x%08x",active_raw_buffer,hook_raw_image_addr(),current_raw_addr2);
+#else
+    _LogCameraEvent(0x60,"Raw Hook: arb:%d rb:0x%08x",active_raw_buffer,hook_raw_image_addr());
+#endif
+}
+
+void log_capt_seq1(int m)
+{
+    _LogCameraEvent(0x60,"Capture Sequence Start: m:%d arb:%d rb:0x%08x i:%04d",
                     m,
+                    active_raw_buffer,
                     hook_raw_image_addr(),
                     get_exposure_counter());
 }
 void log_capt_seq2(int m)
 {
-    _LogCameraEvent(0x60,"cs end m:%d rb:0x%08x i:%04d",
+    _LogCameraEvent(0x60,"Capture Sequence End: m:%d arb:%d rb:0x%08x i:%04d",
                     m,
+                    active_raw_buffer,
                     hook_raw_image_addr(),
                     get_exposure_counter());
 }
-void log_capt_seq_override(void)
+void log_capt_seq3(void)
 {
-    _LogCameraEvent(0x60,"cs override rb:0x%08x i:%04d",
+    _LogCameraEvent(0x60,"Capture Sequence Override: arb:%d rb:0x%08x i:%04d",
+                    active_raw_buffer,
                     hook_raw_image_addr(),
                     get_exposure_counter());
+
 }
 #endif
 
 #include "../../../generic/capt_seq.c"
 
-// first paramter matches active_raw_buffer
-// second is pointer to structure
-extern int _captseq_raw_addr_init(int raw_index, char **ptr);
-char *current_raw_addr;
 
+//***  capt_seq_task *****
 
-void captseq_raw_addr_init_my(int raw_index,char **ptr) {
-    _captseq_raw_addr_init(raw_index,ptr);
-    current_raw_addr=*(ptr + 0x54/4); // FTM @0xfc12ff20, ptr+0x54
-#ifdef CAPTSEQ_DEBUG_LOG
-    _LogCameraEvent(0x60,"rawinit i:0x%x p:0x%x v:0x%x",raw_index,ptr,current_raw_addr);
-#endif
-}
-
-void clear_current_raw_addr(void) {
-    current_raw_addr=NULL;
-}
-
-
-//  -f=chdk -s=task_CaptSeq -c=174 
+//  sx700v100e -f=chdk -s=task_CaptSeq -c=174 
+// task_CaptSeq 0xfc12de09
 void __attribute__((naked,noinline)) capt_seq_task() {
     asm volatile (
-// task_CaptSeq 0xfc12de09
 "    push    {r3, r4, r5, r6, r7, lr}\n"
 "    ldr     r4, =0x00037518\n"
 "    movs    r6, #0\n"
@@ -95,7 +96,7 @@ void __attribute__((naked,noinline)) capt_seq_task() {
 // debug message
 "ldr     r0, [sp]\n"
 "ldr     r0, [r0]\n"
-"bl log_capt_seq\n"
+"bl log_capt_seq1\n"
 #endif
 "    ldr     r0, [sp]\n"
 "    ldr     r1, [r0]\n"
@@ -151,31 +152,30 @@ void __attribute__((naked,noinline)) capt_seq_task() {
 "loc_fc12de82:\n" // case 0: preshoot, quick press shoot
 "    bl      sub_fc12e326\n"
 #ifdef CAPTSEQ_DEBUG_LOG
-"bl log_capt_seq_override\n"
+"bl log_capt_seq3\n"
 #endif
-"    BL      clear_current_raw_addr\n" // +
 "    BL      shooting_expo_param_override\n" // +
 "    bl      sub_fc12bb2e\n"
 "    ldr     r0, [r4, #0x28]\n"
 "    cmp     r0, #0\n"
 "    beq     loc_fc12de94\n"
-"    bl      sub_fc1b935a_my\n" // quick press
 //"    bl      sub_fc1b935a\n" // quick press
+"    bl      sub_fc1b935a_my\n" // SUB1
 "loc_fc12de94:\n"
 "    b       loc_fc12dfee\n"
 "loc_fc12de96:\n"  // case 1: normal shoot
 "    ldr     r0, [r0, #0x10]\n"
-"    bl      sub_fc1b91ce_my\n" // regular shoot
 //"    bl      sub_fc1b91ce\n" // regular shoot
+"    bl      sub_fc1b91ce_my\n" // SUB2
 "    b       loc_fc12dfee\n"
-"loc_fc12de9e:\n"
+"loc_fc12de9e:\n"               // case 2
 "    movs    r0, #1\n"
 "    bl      sub_fc12e5a6\n"
 "    b       loc_fc12dfee\n"
-"loc_fc12dea6:\n"
+"loc_fc12dea6:\n"              // case 4
 "    bl      sub_fc12e0f2\n"
 "    b       loc_fc12deb0\n"
-"loc_fc12deac:\n"
+"loc_fc12deac:\n"              // case 3
 "    bl      sub_fc12e312\n"
 "loc_fc12deb0:\n"
 "    str     r6, [r4, #0x28]\n"
@@ -346,6 +346,7 @@ void __attribute__((naked,noinline)) capt_seq_task() {
 "ldr     r0, [r0]\n"
 "bl log_capt_seq2\n"
 #endif
+"    bl      capt_seq_hook_set_nr\n" //  ---->> dark frame control
 "    ldr     r0, [sp]\n"
 "    ldr     r1, [r0, #4]\n"
 "    ldr     r0, [r5]\n"
@@ -365,8 +366,8 @@ void __attribute__((naked,noinline)) capt_seq_task() {
 }
 
 // Quick Press
-//-f=chdk -s=0xfc1b935b -c=39
-void __attribute__((naked,noinline)) sub_fc1b935a_my() {
+// sx700v100e -f=chdk -s=0xfc1b935b -c=39
+void __attribute__((naked,noinline)) sub_fc1b935a_my() { // SUB1
     asm volatile (
 "    push    {r4, r5, r6, lr}\n"
 "    bl      sub_fc12d52c\n"
@@ -403,7 +404,7 @@ void __attribute__((naked,noinline)) sub_fc1b935a_my() {
 "    bl      sub_fc36f7e0\n"
 "    mov     r0, r4\n"
 //"    bl      sub_fc36fa76\n"
-"    bl      sub_fc36fa76_my\n" // -> remote hook, raw hook
+"    bl      sub_fc36fa76_my\n" // -> SUB3 remote hook, raw hook
 "    lsls    r0, r0, #0x1f\n"
 "    beq     loc_fc1b93cc\n"
 "loc_fc1b93ca:\n"
@@ -414,9 +415,8 @@ void __attribute__((naked,noinline)) sub_fc1b935a_my() {
     );
 }
 
-//here
-// -f=chdk -s=0xfc1b91cf -c=147
-void __attribute__((naked,noinline)) sub_fc1b91ce_my() {
+// sx700v100e -f=chdk -s=0xfc1b91cf -c=147
+void __attribute__((naked,noinline)) sub_fc1b91ce_my() { // SUB2
     asm volatile (
 "    push    {r2, r3, r4, r5, r6, lr}\n"
 "    ldr     r6, =0x00037518\n"
@@ -440,9 +440,7 @@ void __attribute__((naked,noinline)) sub_fc1b91ce_my() {
 "loc_fc1b91f6:\n"
 "    bl      sub_fc12fe98\n"
 "    mov     r1, r4\n"
-// Next two lines between chdk canon
-//"    bl      sub_fc12fede\n"
-"bl captseq_raw_addr_init_my\n"
+"    bl      sub_fc12fede\n"
 "    movs    r2, #4\n"
 "    movw    r0, #0x10e\n"
 "    add.w   r1, r4, #0x50\n"
@@ -571,8 +569,7 @@ void __attribute__((naked,noinline)) sub_fc1b91ce_my() {
 "    bl      sub_fc3701b6\n"
 "    b       loc_fc1b9354\n"
 "loc_fc1b933c:\n"
-//"    bl      sub_fc36fa76\n" 
-"    bl      sub_fc36fa76_my\n" // -> remote, raw hook etc
+"    bl      sub_fc36fa76_my\n"   // ----> SUB3
 "    b       loc_fc1b9354\n"
 "loc_fc1b9342:\n"
 "    movs    r1, #1\n"
@@ -592,20 +589,8 @@ void __attribute__((naked,noinline)) sub_fc1b91ce_my() {
 }
 
 
-#ifdef CAPTSEQ_DEBUG_LOG
-void log_nr_call(void) {
-    _LogCameraEvent(0x60,"nr hook %d",_nrflag);
-}
-void log_remote_hook(void) {
-    _LogCameraEvent(0x60,"remote hook");
-}
-void log_rh(void) {
-    _LogCameraEvent(0x60,"raw hook rb:0x%08x rbc:0x%08x",hook_raw_image_addr(),current_raw_addr);
-}
-#endif
-
-// -f=chdk -s=0xfc36fa77 -c=188
-void __attribute__((naked,noinline)) sub_fc36fa76_my() {
+// sx700v100e -f=chdk -s=0xfc36fa77 -c=188
+void __attribute__((naked,noinline)) sub_fc36fa76_my() { // SUB3
     asm volatile (
 "    push.w  {r2, r3, r4, r5, r6, r7, r8, sb, sl, lr}\n"
 "    ldr     r7, =0x00037518\n"
@@ -677,6 +662,10 @@ void __attribute__((naked,noinline)) sub_fc36fa76_my() {
 "    mov     r0, r4\n"
 "    bl      sub_fc36fdf2\n"
 "    mov     r6, r0\n"
+"    bl      wait_until_remote_button_is_released\n" // ---->> remote hook
+#ifdef CAPT_SEQ_DEBUG
+"    bl      log_remote_hook\n"   // ---->>
+#endif
 "    ldr     r0, [sp, #4]\n"
 "    ubfx    r0, r0, #8, #8\n"
 "    cmp     r0, #6\n"
@@ -767,6 +756,10 @@ void __attribute__((naked,noinline)) sub_fc36fa76_my() {
 "    ldr     r1, =0xfc36fe20\n" //  *"SsStandardCaptureSeq.c"
 "    blx     sub_fc29b444\n" // j_DebugAssert
 "loc_fc36fbec:\n"
+#ifdef CAPT_SEQ_DEBUG
+"  BL log_raw_hook\n"                  // ---->>
+#endif
+"    BL      capt_seq_hook_raw_here\n" // ---->>
 "    mov     r0, r4\n"
 "    bl      sub_fc36f918\n"
 "    mov     r0, r4\n"
