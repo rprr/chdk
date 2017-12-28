@@ -3,7 +3,7 @@
 
 // plaform specific keyboard defines, see core/kbd_common.c for documentation
 #define KEYS_MASK0 (0x0001E30E)
-#define KEYS_MASK1 (0x0000042C) 
+#define KEYS_MASK1 (0x0000002C) 
 #define KEYS_MASK2 (0x0000001E)
 
 // physw_event_table 0xfc5693dc Found @0xfc06e124
