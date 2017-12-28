@@ -129,8 +129,8 @@
     #undef  CAM_SENSOR_BITS_PER_PIXEL
     #define CAM_SENSOR_BITS_PER_PIXEL           12
 
-    //#define CAM_EXT_TV_RANGE                    1
-    #undef CAM_EXT_TV_RANGE
+    #define CAM_EXT_TV_RANGE                    1
+    //#undef CAM_EXT_TV_RANGE
 
     #undef CAM_EXT_AV_RANGE
     // up to APEX 864 F22.6 at max zoom,  657 F 10 at wide

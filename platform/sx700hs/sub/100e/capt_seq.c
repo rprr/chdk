@@ -6,8 +6,8 @@
 //#define CAPTSEQ_DEBUG_LOG 1
 
 #define USE_STUBS_NRFLAG 1
-#define NR_AUTO (0) // For sx700; method from G16 -- default value if NRTBL.SetDarkSubType not used is -1 (0 probalby works the same), set to enable auto
-static long *nrflag = (long*)0x0001b8e4 ; // FTM 0x0001b8e0 + 0x04   found at 0xfc3145fc
+#define NR_AUTO (0) // For sx700v100e; method from G16 -- default value if NRTBL.SetDarkSubType not used is -1 (0 probalby works the same), set to enable auto
+static long *nrflag = (long*)0x0001b8e4 ; // sx700v100e 0x0001b8e0 + 0x04   found at 0xfc3145fc
 
 #ifdef CAPTSEQ_DEBUG_LOG
 extern void _LogCameraEvent(int id,const char *fmt,...);   // debug
@@ -816,8 +816,10 @@ void __attribute__((naked,noinline)) sub_fc36fa76_my() { // SUB3
     );
 }
 
-// -f=chdk -s=task_ExpDrv -c=425
-// ?? note, breaks on literal pool around fc2867f2-fc28681c
+// *******  exp_drv_task  *******
+
+// sx700v100e -f=chdk -s=task_ExpDrv -c=425
+// ?? note, breaks on literal pool around ????
 // task_ExpDrv 0xfc276991
 void __attribute__((naked,noinline)) exp_drv_task() {
     asm volatile (
@@ -866,8 +868,8 @@ void __attribute__((naked,noinline)) exp_drv_task() {
 "    blx     sub_fc29b32c\n" // j_SetEventFlag
 "    blx     sub_fc29b364\n" // -> ExitTask
 "    add     sp, #0x2c\n"
-//"    b       loc_fc2766f4\n"
-"    pop.w   {r4, r5, r6, r7, r8, sb, sl, fp, pc}\n" // + @fc2766f4
+//"    b       loc_fc2766f4\n"                         // branches to pop.w
+"    ldmia.w sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}\n"  // substitute this instead
 "loc_fc2769fe:\n"
 "    cmp     r1, #0x2f\n"
 "    bne     loc_fc276a10\n"
@@ -1143,7 +1145,7 @@ void __attribute__((naked,noinline)) exp_drv_task() {
 "    b       loc_fc276d34\n"
 "loc_fc276c32:\n"
 //"    bl      sub_fc273b48\n"
-"    bl      sub_fc273b48_my\n"
+"    bl      sub_fc273b48_my\n"           // --->
 "    movs    r5, #0\n"
 "    b       loc_fc276d34\n"
 "loc_fc276c3a:\n"
@@ -1356,7 +1358,7 @@ void __attribute__((naked,noinline)) exp_drv_task() {
 }
 
 // Used by ExpDrv
-// -f=chdk -s=0xfc273b49 -c=87
+// sx700v100e -f=chdk -s=0xfc273b49 -c=52
 void __attribute__((naked,noinline)) sub_fc273b48_my() {
     asm volatile (
 "    push.w  {r4, r5, r6, r7, r8, lr}\n"
@@ -1416,52 +1418,13 @@ void __attribute__((naked,noinline)) sub_fc273b48_my() {
 "    strh    r0, [r4, #0xc]\n"
 "    ldrsh.w r0, [r4, #6]\n"
 "    bl      sub_fc1498d4_my\n" // ->
-"    ldr     pc, =0xfc273bdb\n" // xfound ;continue in firmware, thumb
-/*
-"    ldrsh.w r0, [r4, #8]\n"
-"    movs    r1, #1\n"
-"    bl      sub_fc149ef2\n"
-"    movs    r1, #0\n"
-"    add.w   r0, r4, #8\n"
-"    bl      sub_fc149f5a\n"
-"    ldrsh.w r0, [r4, #0xe]\n"
-"    bl      sub_fc1518e0\n"
-"    cmp     r6, #1\n"
-"    movw    r4, #0xbb8\n"
-"    bne     loc_fc273c1a\n"
-"    ldr     r0, [r7, #0x1c]\n"
-"    movs    r1, #2\n"
-"    mov     r2, r4\n"
-"    blx     sub_fc29b29c\n" // j_WaitForAllEventFlag
-"    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc273c1a\n"
-"    movw    r2, #0x8e5\n"
-"    ldr     r1, =0xfc2730b0\n" //  *"ExpDrv.c"
-"    movs    r0, #0\n"
-"    blx     sub_fc29b444\n" // j_DebugAssert
-"loc_fc273c1a:\n"
-"    cmp     r5, #1\n"
-"    bne     loc_fc273c3e\n"
-"    ldr     r0, [r7, #0x1c]\n"
-"    movs    r1, #0x20\n"
-"    mov     r2, r4\n"
-"    blx     sub_fc29b29c\n" // j_WaitForAllEventFlag
-"    lsls    r0, r0, #0x1f\n"
-"    beq     loc_fc273c3e\n"
-"    movw    r2, #0x8ea\n"
-"    ldr     r1, =0xfc2730b0\n" //  *"ExpDrv.c"
-"    pop.w   {r4, r5, r6, r7, r8, lr}\n"
-"    movs    r0, #0\n"
-"    b.w     loc_fc29aa60\n" // -> DebugAssert
-"loc_fc273c3e:\n"
-"    pop.w   {r4, r5, r6, r7, r8, pc}\n"
-*/
+"    ldr     pc, =0xfc273bdb\n" // continue in firmware, thumb
 ".ltorg\n"
     );
 }
 
 // Used by sub_fc273b48_my following from ExpDrv
-// -f=chdk -s=0xfc1498d5 -c=35
+// sx700v100e -f=chdk -s=0xfc1498d5 -c=35
 void __attribute__((naked,noinline)) sub_fc1498d4_my() {
 asm volatile (
 "    push    {r4, r5, r6, lr}\n"
@@ -1491,9 +1454,9 @@ asm volatile (
 "    mov     r0, r4\n"
 "    bl      sub_fc313636\n" // ?? _apex2us
 //"    bl      fc313636\n" 
-//"    mov     r4, r0\n" // removed due to nullsub
-//"    bl      sub_fc184f1a\n" // nullsub
-//"    mov     r0, r4\n"
+"    mov     r4, r0\n" 
+"    bl      sub_fc184f1a\n" 
+"    mov     r0, r4\n"
 "    bl      sub_fc1891ba\n"
 "    lsls    r0, r0, #0x1f\n"
 "    beq     loc_fc14992e\n"
@@ -1502,7 +1465,7 @@ asm volatile (
 "    movw    r2, #0x173\n"
 "    ldr     r1, =0xfc149980\n" //  *"Shutter.c"
 //"    b.w     loc_fc29aa60\n" // -> DebugAssert
-"    blx     sub_fc29aa60\n" // j_DebugAssert
+"    ldr     pc,=0xfc29aa61\n" // -> DebugAssert  << replaced with thumb code
 "loc_fc14992e:\n"
 "    pop     {r4, r5, r6, pc}\n"
 ".ltorg\n"

@@ -33,34 +33,14 @@ KeyMap keymap[] = {
     { 0, KEY_RIGHT           ,0x00010000 }, // Found @0xfc569424, levent 0x09
     { 1, KEY_LEFT            ,0x00000004 }, // Found @0xfc56942c, levent 0x08
     { 1, KEY_SET             ,0x00000008 }, // Found @0xfc569434, levent 0x0a
-    { 0, 0, 0 }
-
-/*
-    { 0, KEY_SHOOT_FULL      ,0x00040001 }, // Found @0xfc5cfb3c, levent 0x01
-    { 0, KEY_SHOOT_HALF      ,0x00040000 }, // Found @0xfc5cfbc4, levent 0x00
-    { 0, KEY_SHOOT_FULL_ONLY ,0x00000001 }, // Found @0xfc5cfb3c, levent 0x01
-    { 0, KEY_VIDEO           ,0x00000008 }, // Found @0xfc5cfb54, levent 0x02
-    { 0, KEY_MENU            ,0x00000010 }, // Found @0xfc5cfb5c, levent 0x14
-    { 0, KEY_UP              ,0x00000020 }, // Found @0xfc5cfb64, levent 0x06
-    { 0, KEY_DOWN            ,0x00000040 }, // Found @0xfc5cfb6c, levent 0x07
-    { 0, KEY_RIGHT           ,0x00000080 }, // Found @0xfc5cfb74, levent 0x09
-    { 0, KEY_LEFT            ,0x00000100 }, // Found @0xfc5cfb7c, levent 0x08
-    { 0, KEY_SET             ,0x00000200 }, // Found @0xfc5cfb84, levent 0x0a
-    { 0, KEY_ERASE           ,0x00000400 }, //found by testing 
-    { 0, KEY_WIFI            ,0x00002000 }, // found by testing 
-    { 0, KEY_FACE            ,0x00000800 },
-    { 0, KEY_PRINT           ,0x00004000 },
-    { 0, KEY_FRAMING_ASSIST  ,0x00000002 },
-    { 0, KEY_ZOOM_ASSIST     ,0x00000004 },
-    { 0, KEY_PLAYBACK        ,0x00010000 }, // Found @0xfc5cfbb4, levent 0x101
-//    { 0, KEY_POWER           ,0x00020000 }, // Found @0xfc5cfbbc, levent 0x100
-    { 2, KEY_ZOOM_OUT        ,0x00000008 }, // full speed
-    { 2, KEY_ZOOM_OUT        ,0x00000018 }, // middle speed
-    { 2, KEY_ZOOM_OUT        ,0x00000010 }, // low speed
+//
+    { 1, KEY_WIFI            ,0x00000020 },
+    { 1, KEY_FRAMING_ASSIST  ,0x00000400 },
     { 2, KEY_ZOOM_IN         ,0x00000002 }, // full speed
-    { 2, KEY_ZOOM_IN         ,0x00000006 }, // middle speed
     { 2, KEY_ZOOM_IN         ,0x00000004 }, // low speed
-*/
+    { 2, KEY_ZOOM_OUT        ,0x00000008 }, // full speed
+    { 2, KEY_ZOOM_OUT        ,0x00000010 }, // low speed
+    { 0, 0, 0 }
 };
 
 // flash open word 1, 0x00000200 = open

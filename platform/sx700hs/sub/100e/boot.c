@@ -211,7 +211,6 @@ asm volatile (
 
 
 
-/*
 "    LDR     R0, =task_ExpDrv\n"
 "    CMP     R0, R3\n"
 "    itt     eq\n"
@@ -219,6 +218,7 @@ asm volatile (
 "    orreq   r3, #1\n"
 "    BEQ     exitHook\n"
 
+/*
 "    LDR     R0, =task_DvlpSeqTask\n"
 "    CMP     R0, R3\n"
 "    itt     eq\n"
