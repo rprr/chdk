@@ -817,7 +817,9 @@ void __attribute__((naked,noinline)) sub_fc36fa76_my() { // SUB3
 }
 
 // *******  exp_drv_task  *******
+// Likley not needed in sx700hs, so if 0
 
+#if 0
 // sx700v100e -f=chdk -s=task_ExpDrv -c=425
 // ?? note, breaks on literal pool around ????
 // task_ExpDrv 0xfc276991
@@ -1452,8 +1454,9 @@ asm volatile (
 "    blx     sub_fc29b444\n" // j_DebugAssert
 "loc_fc149908:\n"
 "    mov     r0, r4\n"
-"    bl      sub_fc313636\n" // ?? _apex2us
 //"    bl      fc313636\n" 
+"    bl      sub_fc313636\n" // ?? _apex2us
+//"    bl      apex2us\n"
 "    mov     r4, r0\n" 
 "    bl      sub_fc184f1a\n" 
 "    mov     r0, r4\n"
@@ -1471,4 +1474,5 @@ asm volatile (
 ".ltorg\n"
     );
 }
+#endif
 

@@ -1,5 +1,5 @@
 ******************************
-SX60 HS notes
+SX700 HS notes
 ******************************
 This is an INCOMPLETE, UNFINISHED PORT.
 Many features and combinations of Canon settings have not been tested.
@@ -19,29 +19,18 @@ https://chdk.setepontos.com/index.php?topic=12532.0
 
 General camera and CHDK port information
 ****************************************
-SX60 HS has an adjustable aperture as well as an internal ND filter .
 
-Default alt button is PLAY, VIDEO and WIFI may also be used
-
-To start in shooting mode or wifi connect, hold down the corresponding button
-
-Raw blacklevel appears to be ~128.
-
-SX60 HS uses propset 8.  The values in some propcases have changed.
-
-Preliminary support for PTP Live View, using chdkptp client r712 or later.
-- live buffer is found for motion detection
-- playback viewport buffer(s) for live view video clips are implemented 
+SX700 HS uses propset 6.  The values in some propcases have changed.
 
 TESTED
 ******
 llibtst.lua 
-mftest.lua
-setmode.lua - crashes with default 10ms delay, works with 100ms
+mftest.lua -- requires MF selection first from Canon Menu
+setmode.lua - crashes with default 10ms delay, works with 50
 ubtest.bas
 hooktest.lua
 isobase.lua
-USB remote - plug test  remote hook only
+
 CHDK raw / DNG (in P, M, Tv, Av modes). 
 AUTO mode suppresses Canon RAW, however CHDK RAW/DNG is created.
 CHDK ISO Bracketing in Av, Tv, 

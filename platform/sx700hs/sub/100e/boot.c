@@ -210,13 +210,16 @@ asm volatile (
 "    beq     exitHook\n"                // below compares not necessary if this check has found something.
 
 
+// Appears to not be needed for sx700hs
 
+#if 0
 "    LDR     R0, =task_ExpDrv\n"
 "    CMP     R0, R3\n"
 "    itt     eq\n"
 "    LDREQ   R3, =exp_drv_task\n"
 "    orreq   r3, #1\n"
 "    BEQ     exitHook\n"
+#endif
 
 /*
 "    LDR     R0, =task_DvlpSeqTask\n"

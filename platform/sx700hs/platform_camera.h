@@ -1,6 +1,6 @@
 // Camera - sx700hs - platform_camera.h
 
-// This file contains the various settings values specific to the SX60HS camera.
+// This file contains the various settings values specific to the SX700HS camera. It was copied over from the SX60HS so some settings may be wrong.
 // This file is referenced via the 'include/camera.h' file and should not be loaded directly.
 
 // If adding a new settings value put a suitable default in 'include/camera.h',
@@ -19,53 +19,62 @@
 // When porting CHDK to a new camera, check the documentation in 'include/camera.h'
 // for information on each setting. If the default values are correct for your camera then
 // don't override them again in here.
+
+    #define CAM_PROPSET                         6
+
+
 //    #define CAM_DISABLE_RAW_IN_LOW_LIGHT_MODE   1
 //    #define CAM_DISABLE_RAW_IN_HQ_BURST         1
-    #define CAM_DISABLE_RAW_IN_HYBRID_AUTO      1 // For cameras that lock up while saving raw in "Hybrid Auto" mode
+    #define CAM_DISABLE_RAW_IN_HYBRID_AUTO      1 
+    #define CAM_DISABLE_RAW_IN_HANDHELD_NIGHT_SCN   1 // probably doesn't make sense
 //    #define CAM_DISABLE_RAW_IN_AUTO             1
 //    #define CAM_DISABLE_RAW_IN_SPORTS           1
 
 // allows CHDK raw exception in sports mode
 //    #define CAM_HAS_SPORTS_MODE                 1
 
-    #define CAM_AV_OVERRIDE_IRIS_FIX            1
+    #define CAM_AV_OVERRIDE_IRIS_FIX            1  // for cameras that require _MoveIrisWithAv function to override Av (for bracketing).
 
-    #define CAM_HAS_ND_FILTER                   1            // Camera has built-in ND filter (in addition to iris)
+    //#define CAM_HAS_ND_FILTER                   1            // Camera has built-in ND filter (in addition to iris)
+      #undef CAM_HAS_ND_FILTER
 
 //    #undef  CAM_KEY_PRESS_DELAY
 //    #define CAM_KEY_PRESS_DELAY                 60          // delay after a press
 
     #define CAM_ADJUSTABLE_ALT_BUTTON           1
+
     #define CAM_ALT_BUTTON_NAMES                {  "Playback", "Video", "WiFi"}
     #define CAM_ALT_BUTTON_OPTIONS              {  KEY_PLAYBACK,   KEY_VIDEO, KEY_WIFI }
+
     #define CAM_DRIVE_MODE_FROM_TIMER_MODE      1
 
-    // zebra and histo don't currently work, make shortcuts do nothing
-    #define SHORTCUT_TOGGLE_HISTO               KEY_DUMMY
+    // default zebra shortcut (left) conflicts with canon AF lock
     #define SHORTCUT_TOGGLE_ZEBRA               KEY_DUMMY
 
     #define CAM_DRYOS                           1
     #define CAM_DRYOS_2_3_R39                   1
     #define CAM_DRYOS_2_3_R47                   1
-    #define CAM_PROPSET                         6
-
 
 
     #define CAM_HAS_CMOS                        1
 
+    // unlocked by default, not needed
     #undef  CAM_CAN_UNLOCK_OPTICAL_ZOOM_IN_VIDEO
     #define CAM_HAS_VIDEO_BUTTON                  1
-//    #define CAM_VIDEO_QUALITY_ONLY                1
+
+// has disp
 //    #undef  CAM_HAS_DISP_BUTTON
 // no dedicated erase
     #undef  CAM_HAS_ERASE_BUTTON
     #undef  CAM_USE_ZOOM_FOR_MF
 
+// not implemented
     #undef  CAM_CHDK_HAS_EXT_VIDEO_MENU
     #undef  CAM_VIDEO_CONTROL
 
 // minimal recording or not only
     #define CAM_SIMPLE_MOVIE_STATUS 1
+
 
 
     #define CAM_IS_VID_REC_WORKS 1 // Define if the 'is_video_recording()' function works
@@ -76,8 +85,8 @@
 #undef  CAM_UNCACHED_BIT
 #define CAM_UNCACHED_BIT  0x40000000 // Found @0xfc148c98
 
-    #undef  CAM_CIRCLE_OF_CONFUSION
-    #define CAM_CIRCLE_OF_CONFUSION             5  // CoC value for camera/sensor (see http://www.dofmaster.com/digital_coc.html)
+// default
+//    #define CAM_CIRCLE_OF_CONFUSION             5  // CoC value for camera/sensor (see http://www.dofmaster.com/digital_coc.html)
 
     
     #define CAM_DNG_LENS_INFO                   { 45,10,7500,10,32,10,69,10 }
@@ -91,7 +100,7 @@
     -1888, 10000, 10463, 10000, 1645, 10000, \
       286, 10000,   708, 10000, 6145, 10000
 
-/*
+
     #define cam_CalibrationIlluminant2          21     // aDobe 
 
     #define CAM_COLORMATRIX2 \
@@ -107,7 +116,7 @@
     3678, 10000, 4352, 10000, 1613, 10000, \
     1429, 10000, 8091, 10000,  480, 10000, \
      577, 10000,   26, 10000, 7648, 10000
-*/
+
 
     #define CAM_RAW_ROWPIX                      4768
 //4608
@@ -198,9 +207,6 @@
     #undef  CAM_AF_LED 
     #define CAM_AF_LED     1
 
-    #define CAM_SIMPLE_MOVIE_STATUS 1
-    #define CAM_IS_VID_REC_WORKS 1
-    #define CAM_HOTSHOE_OVERRIDE 1
 //--------------------------------------------------
 
 // From tests
