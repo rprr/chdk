@@ -31,7 +31,7 @@
 //    #define CAM_DISABLE_RAW_IN_SPORTS           1
 
 // allows CHDK raw exception in sports mode
-//    #define CAM_HAS_SPORTS_MODE                 1
+    #define CAM_HAS_SPORTS_MODE                 1
 
     #define CAM_AV_OVERRIDE_IRIS_FIX            1  // for cameras that require _MoveIrisWithAv function to override Av (for bracketing).
 
@@ -118,10 +118,8 @@
      577, 10000,   26, 10000, 7648, 10000
 
 
-    #define CAM_RAW_ROWPIX                      4768
-//4608
-    #define CAM_RAW_ROWS                        3516
-//3456
+    #define CAM_RAW_ROWPIX                      4768 // 4608
+    #define CAM_RAW_ROWS                        3516 // 3456
 
     #define CAM_JPEG_WIDTH                      4608
     #define CAM_JPEG_HEIGHT                     3456 
@@ -129,7 +127,7 @@
 
     #define CAM_ACTIVE_AREA_X1                  96 //?? 
     #define CAM_ACTIVE_AREA_Y1                  16 //??
-    #define CAM_ACTIVE_AREA_X2                  4760
+    #define CAM_ACTIVE_AREA_X2                  4768
     #define CAM_ACTIVE_AREA_Y2                  3516
 
     #define PARAM_CAMERA_NAME                   3

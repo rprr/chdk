@@ -27,7 +27,7 @@ KeyMap keymap[] = {
     { 0, KEY_SHOOT_HALF      ,0x00000004 }, // Found @0xfc5693ec, levent 0x00
     { 0, KEY_VIDEO           ,0x00000100 }, // Found @0xfc5693fc, levent 0x02
     { 0, KEY_MENU            ,0x00000200 }, // Found @0xfc569404, levent 0x0e
-    { 0, KEY_HELP            ,0x00002000 }, // Found @0xfc56940c, levent 0x0d
+    { 0, KEY_DISPLAY         ,0x00002000 }, // Found @0xfc56940c, levent 0x0d
     { 0, KEY_UP              ,0x00004000 }, // Found @0xfc569414, levent 0x06
     { 0, KEY_DOWN            ,0x00008000 }, // Found @0xfc56941c, levent 0x07
     { 0, KEY_RIGHT           ,0x00010000 }, // Found @0xfc569424, levent 0x09

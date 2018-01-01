@@ -3,7 +3,7 @@
 #include "core.h"
 
 // debug
-//#define CAPTSEQ_DEBUG_LOG 1
+#define CAPTSEQ_DEBUG_LOG 1
 
 #define USE_STUBS_NRFLAG 1
 #define NR_AUTO (0) // For sx700v100e; method from G16 -- default value if NRTBL.SetDarkSubType not used is -1 (0 probalby works the same), set to enable auto

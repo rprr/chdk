@@ -90,6 +90,9 @@ const CapturemodeMap modemap[] = {
 { MODE_AV                   ,32770 },
 { MODE_TV                   ,32771 },
 { MODE_P                    ,32772 },
+{ MODE_NIGHT_SNAPSHOT       ,32831 }, // Shows stars? Night snapshot
+//{ MODE_???               ,32832 }, // as 32832 Shows stars?
+//{ MODE_???               ,33335 }, // person in front of landscape
 { MODE_LIVE                 ,33340 }, // Creative shot, various sub modes all use same number
 { MODE_FISHEYE              ,8754 },
 { MODE_MINIATURE            ,8755 },
@@ -99,13 +102,16 @@ const CapturemodeMap modemap[] = {
 { MODE_SUPER_VIVID          ,8749 },
 { MODE_POSTER_EFFECT        ,8750 },
 { MODE_PORTRAIT             ,16404 },
+//{ MODE_???               ,16943 }, // Smile same as 16944?
 { MODE_SMART_SHUTTER        ,16944 }, // smile detection
+//{ MODE_???               ,16945 }, // Smile same as 16944?
 { MODE_HIGHSPEED_BURST       ,16393 }, // 4 hq burst shots
 { MODE_NIGHT_SCENE          ,16948 }, // handheld night scene
 { MODE_LOWLIGHT             ,16424 },
 { MODE_SNOW                 ,16412 },
 { MODE_FIREWORK             ,16414 },
 { MODE_CREATIVE_EFFECT      ,33297 }, // Creative shot, various sub modes all use same number
+//{ MODE_???               ,33295 }, // Crashes camera -- Keep the face within the frame, then shoot
 { MODE_HYBRID_AUTO          ,33296 }, // like movie digest
 { MODE_SPORTS               ,33287 },
 { MODE_VIDEO_STD             ,2634 }, // standard video on dial

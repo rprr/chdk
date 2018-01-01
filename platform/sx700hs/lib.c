@@ -61,51 +61,22 @@ void JogDial_CCW(void) {
     _PostLogicalEventToUI(0x873, 1);    //RotateJogDialLeft
 }
 
-// Copied from G16
-// ***  RAW / DNG handling ***
 
+// Copied from sx280
 extern  int     active_raw_buffer;
 extern  char *  raw_buffers[];
-//extern  char *  raw_buffers_jpeg[];
 
-char * hook_raw_image_addr()
+char *hook_raw_image_addr()
 {
-    int i=0 ;                               // AUTO mode uses just 1 buffer
-/*
-    if(( camera_info.state.mode_shooting != MODE_AUTO ) &&
-       ( camera_info.state.mode_shooting != MODE_HYBRID_AUTO ))
-    {
-        i=active_raw_buffer&3;              // indexes three buffers
-
-        if(shooting_get_prop(PROPCASE_IMAGE_FORMAT) == 1)
-        {
-            return raw_buffers_jpeg[i];     // canon raw disabled
-        }
-    }
-*/
-    return raw_buffers[i];                  // canon raw enabled or AUTO mode
-
-    // **FIXME** scene mode addresses might not be right
+    return raw_buffers[(active_raw_buffer&1)];
 }
 
 char *hook_alt_raw_image_addr()
 {
-    int i=0 ;                               // AUTO mode uses just 1 buffer
-/*
-    if(( camera_info.state.mode_shooting != MODE_AUTO ) &&
-       ( camera_info.state.mode_shooting != MODE_HYBRID_AUTO ))
-    {
-        int i = (active_raw_buffer&3)-1;    // indexes three buffers
-        if (i<0) i=2;
-
-        if(shooting_get_prop(PROPCASE_IMAGE_FORMAT) == 1)
-        {
-            return raw_buffers_jpeg[i];     // canon raw disabled
-        }
-    }
-*/
-    return raw_buffers[i];
+    return raw_buffers[((active_raw_buffer&1)^1)];
 }
+
+
 
 // ***  Viewport buffer handling ***
 
@@ -114,7 +85,7 @@ extern void *current_viewport_buffer;
 
 void *vid_get_viewport_fb() {
     //return viewport_buffers[0];      // From G16 copy
-    return (void*)0x43312300; // FFTM "first" viewport adr, "VRAM Address  : %p", contains d6 uyvy
+    return (void*)0x43312300; // sx700v100e "first" viewport adr, "VRAM Address  : %p", contains d6 uyvy
 }
 
 /*
