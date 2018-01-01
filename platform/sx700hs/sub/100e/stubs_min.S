@@ -33,9 +33,13 @@ DEF(raw_buffers                             ,0xfc5d9098) // sx700v100e found @fc
 DEF(active_raw_buffer                       ,0x0000baf4) // sx700v100e found  @0xfc12fe98, 0xffffffff when uninited (0xC offset added similar to sx280)
 
 // Contains viewport address that updates at ~30fps in rec mode, 0 or last rec value in pb
-DEF(current_viewport_buffer       ,0x000087C0) // sx700v100e found @0xfc12008c -- 0x00008788 + 0x38 (Same as G16 search GetMovieJpegVRAMVPixelsSize_FW)
+DEF(current_viewport_buffer       ,0x00008788+0x38) // sx700v100e found @0xfc12008c -- 0x00008788 + 0x38 (Same as G16 search GetMovieJpegVRAMVPixelsSize_FW)
+//FAKEDEF(current_viewport_buffer              ,1)
 
-DEF(viewport_buffers              ,0xfc5710014) // sx700v100e found @0xfc143cca 0x571004 + 0x10 similar to G16
+// rmem 0xfc568a64 3 -i32
+// 0xfc568a64: 0x43312300 0x433c0b00 0x4346f300 0x4351db00
+DEF(viewport_buffers              ,0xfc568a64) // sx700v100e found @0xfc11f37c 0xfc568a4c + 0x10 + 0x8 similar to G16
+//FAKEDEF(viewport_buffers              ,1)
 
 DEF(dial_positions,0x0000fdd4) // sx700v100e found from sub_fc06beac similar to G16
 

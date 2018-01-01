@@ -98,12 +98,11 @@ void *vid_get_viewport_fb_d()    {
     return current_fb_d;
 } 
 
-/* Below numbers for sx710
-four viewport buffers @0xfc5befd8
-0x42cafe00
-0x42d5e600
-0x42e0ce00
-0x42ebb600
+/* Below numbers for sx700v100e
+four viewport buffers @0xfc568a64
+rmem 0xfc568a64 4 -i32
+0xfc568a64 16
+0xfc568a64: 0x43312300 0x433c0b00 0x4346f300 0x4351db00
 */
 
 
