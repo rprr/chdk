@@ -82,6 +82,10 @@ DEF(_nrflag                           ,0x0001b8e4) // (0x1b8e0+0x4) Found @0xfc3
 DEF(active_bitmap_buffer              ,0x0000c784) // (0xc754+0x30) Found @0xfc30d300
 DEF_CONST(uiprop_count                      ,0x0000009d) // Found @0xfc0bb660
 
+//NHSTUB(EnterToCompensationEVF               ,0x00000000) //  0        *** != 0xfc25c1a9
+//NHSTUB(ExitFromCompensationEVF              ,0x00000000) //  0        *** != 0xfc254ce9
+//NHSTUB(ExpCtrlTool_StartContiAE             ,0x00000000) //  0        *** != 0xfc24d359
+//NHSTUB(ExpCtrlTool_StopContiAE              ,0x00000000) //  0        *** != 0xfc24d439
 //NHSTUB(Feof_Fut                             ,0x00000000) //  0        *** != 0xfc2d7d95
 //NHSTUB(Fflush_Fut                           ,0x00000000) //  0        *** != 0xfc2d7dbd
 //NHSTUB(GetDrive_TotalClusters               ,0x00000000) //  0        *** != 0xfc307985
@@ -89,9 +93,13 @@ DEF_CONST(uiprop_count                      ,0x0000009d) // Found @0xfc0bb660
 //NHSTUB(GetImageFolder                       ,0x00000000) //  0        *** != 0xfc2e07d9
 //NHSTUB(MakeSDCardBootable                   ,0x00000000) //  0        *** != 0xfc307d93
 //NHSTUB(RenameFile_Fut                       ,0x00000000) //  0        *** != 0xfc2d7b45
+//NHSTUB(Restart                              ,0x00000000) //  0        *** != 0xfc0a6e95
 //NHSTUB(SetFileAttributes                    ,0x00000000) //  0        *** != 0xfc308145
 //NHSTUB(SetFileTimeStamp                     ,0x00000000) //  0        *** != 0xfc3080fd
+//NHSTUB(SetParameterData                     ,0x00000000) //  0        *** != 0xfc0bbdd7
+//NHSTUB(WriteSDCard                          ,0x00000000) //  0        *** != 0xfc0e851d
 //NHSTUB(apex2us                              ,0x00000000) //  0        *** != 0xfc313637
+//NHSTUB(reboot_fw_update                     ,0x00000000) //  0        *** != 0xfc370b89
 //NHSTUB(CancelHPTimer                        ,0x00000000) //  0        *** != 0xfc1360f5
 
 NHSTUB(AllocateUncacheableMemory              ,0xfc148c69) //  0
@@ -103,12 +111,8 @@ NHSTUB(DeleteDirectory_Fut                    ,0xfc2d7bf1) //  0
 NHSTUB(DeleteFile_Fut                         ,0xfc2d7ba7) //  0
 NHSTUB(DoAELock                               ,0xfc25c231) //  0
 NHSTUB(DoAFLock                               ,0xfc25bebf) //  0
-//NHSTUB(EnterToCompensationEVF               ,0x00000000) //  0            == 0x00000000
 NHSTUB2(ExecuteEventProcedure                  ,0xfc2ddb69) //  0
-//NHSTUB(ExitFromCompensationEVF              ,0x00000000) //  0            == 0x00000000
 NHSTUB(ExitTask                               ,0x010c5249) //  0
-//NHSTUB(ExpCtrlTool_StartContiAE             ,0x00000000) //  0            == 0x00000000
-//NHSTUB(ExpCtrlTool_StopContiAE              ,0x00000000) //  0            == 0x00000000
 NHSTUB(Fclose_Fut                             ,0xfc2d7c53) //  0
 NHSTUB(Fgets_Fut                              ,0xfc2d7d31) //  0
 NHSTUB(Fopen_Fut                              ,0xfc2d7c2b) //  0
@@ -154,14 +158,12 @@ NHSTUB(Read                                   ,0xfc119b79) //  0
 NHSTUB(ReadFastDir                            ,0xfc0faf71) //  0
 NHSTUB(Rec2PB                                 ,0xfc0cd787) //  0
 //NHSTUB(RefreshPhysicalScreen                ,0x00000000) //  0            == 0x00000000
-//NHSTUB(Restart                              ,0x00000000) //  0            == 0x00000000
 NHSTUB(ScreenLock                             ,0xfc30d24f) //  0
 NHSTUB(ScreenUnlock                           ,0xfc30d28d) //  0
 NHSTUB(SetAE_ShutterSpeed                     ,0xfc459d69) //  0
 NHSTUB(SetAutoShutdownTime                    ,0xfc136cbb) //  0
 NHSTUB(SetCurrentCaptureModeType              ,0xfc2de78d) //  0
 NHSTUB(SetLogicalEventActive                  ,0xfc3068a7) //  0
-//NHSTUB(SetParameterData                     ,0x00000000) //  0            == 0x00000000
 NHSTUB(SetPropertyCase                        ,0xfc2ef3e7) //  0
 NHSTUB(SetScriptMode                          ,0xfc3068df) //  0
 NHSTUB(SleepTask                              ,0x010c4fdd) //  0
@@ -176,7 +178,6 @@ NHSTUB(UnlockMainPower                        ,0xfc136c0b) //  0
 //NHSTUB(UnsetZoomForMovie                    ,0x00000000) //  0            == 0x00000000
 NHSTUB(VbattGet                               ,0xfc11a537) //  0
 NHSTUB(Write                                  ,0xfc307ee9) //  0
-//NHSTUB(WriteSDCard                          ,0x00000000) //  0            == 0x00000000
 NHSTUB(_log                                   ,0x010daf58) //  0
 NHSTUB(_log10                                 ,0x010db478) //  0
 NHSTUB(_pow                                   ,0x010db5e0) //  0
@@ -203,7 +204,6 @@ NHSTUB(closedir                               ,0xfc0fae99) //  0
 NHSTUB(get_fstype                             ,0xfc307415) //  0
 NHSTUB(qsort                                  ,0xfc3ed63d) //  0
 NHSTUB(rand                                   ,0xfc1feba7) //  0
-//NHSTUB(reboot_fw_update                     ,0x00000000) //  0            == 0x00000000
 NHSTUB(set_control_event                      ,0xfc3065ed) //  0
 NHSTUB(srand                                  ,0xfc1feba1) //  0
 NHSTUB(stat                                   ,0xfc308045) //  0

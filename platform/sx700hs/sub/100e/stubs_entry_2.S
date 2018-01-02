@@ -47,27 +47,34 @@ NHSTUB(init_nd_eventflag,		0xfc45d591) // sx700v100e InitializeAdjustmentSystem-
 
 NHSTUB(CreateBinarySemaphoreStrictly,           0x010c5b6b) // from csv // sx700v100e
 
-// sx700v100e (via sx60hs) via func fc07b6ba hooked in preshoot case, similar to g7x
-NHSTUB(captseq_raw_addr_init,					0xfc12fedf)
+NHSTUB(captseq_raw_addr_init,					0xfc12fedf) // sx700v100e (via sx60hs) via func fc07b6ba hooked in preshoot case, similar to g7x
 
+NHSTUB(EnterToCompensationEVF,0xfc25c1a9) // sx700v100e search for "ExpOn"
+
+NHSTUB(ExitFromCompensationEVF,0xfc254ce9) // sx700v100e search for "ExpOff"
+
+NHSTUB(ExpCtrlTool_StartContiAE             ,0xfc24d359) //  sx700v100e search for "ExpCtrl.c" followed by "StartContiAE"
+
+NHSTUB(ExpCtrlTool_StopContiAE              ,0xfc24d439) //  sx700v100e search for "ExpCtrl.c" followed by "StopContiAE"
+
+NHSTUB(Restart                              ,0xfc0a6e95) //  sx700v100e one of the calls to StopRedirectUART_FW
+
+NHSTUB(SetParameterData                     ,0xfc0bbdd7) //  same as PTM_BackupUIProperty_FW
+
+NHSTUB(WriteSDCard                          ,0xfc0e851d) //  sx700v100e above the first occurance of the string "Mounter.c"
+
+NHSTUB(reboot_fw_update                     ,0xfc370b89) //  sx700v100e look for "FirmUpgrade.c"
 
 // *** Not Found 
-
-//NHSTUB(PT_PlaySound,							0xfc3061c1) // via call from fc34f924 to fc3505e2, similar to g7x fc41fef8
-//NHSTUB(PT_PlaySound, NULL_SUB)
+NHSTUB(RefreshPhysicalScreen,NULL_SUB)
 
 // not implemented
-NHSTUB(EnterToCompensationEVF,NULL_SUB)
-NHSTUB(ExitFromCompensationEVF,NULL_SUB)
-NHSTUB(ExpCtrlTool_StartContiAE,NULL_SUB)
-NHSTUB(ExpCtrlTool_StopContiAE,NULL_SUB)
-NHSTUB(RefreshPhysicalScreen,NULL_SUB)
-NHSTUB(Restart,NULL_SUB)
-NHSTUB(SetParameterData,NULL_SUB)
-NHSTUB(WriteSDCard,NULL_SUB)
-NHSTUB(reboot_fw_update,NULL_SUB)
-
-// from sx280 These don't exist
+NHSTUB(UnsetZoomForMovie,NULL_SUB)
 NHSTUB(SetZoomActuatorSpeedPercent, NULL_SUB)
-NHSTUB(UnsetZoomForMovie,           NULL_SUB)
+
+
+// From stubs_entry.S
+
+//NHSTUB(RefreshPhysicalScreen                ,0x00000000) //  0            == 0x00000000
+//NHSTUB(UnsetZoomForMovie                    ,0x00000000) //  0            == 0x00000000
 
