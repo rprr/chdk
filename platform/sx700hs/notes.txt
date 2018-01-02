@@ -45,12 +45,14 @@ crash the camera. The only one that was identified is 32831
 
 
 
+
 TESTED
 ******
 Tested:
 Overrides -- Av, Tv
 Bracketed shooting in continuous mode (Av, Tv)
 DNG shooting
+SD override does not work with     //#define CAM_SD_OVER_IN_AF  1
 Scripted shooting (Lua scripts -- isobase, llibtst, hooktest)
 Connected shooting -- ptpchdk
 chdkptp camtests
