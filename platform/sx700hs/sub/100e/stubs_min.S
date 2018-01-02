@@ -46,17 +46,20 @@ DEF(displaytype,                              0x8f98) // sx700v100e Similar to s
 
 // *** Not Found *** 
 
-// Below Could not find ftm
-
 FAKEDEF(video_compression_rate, 1)
 
 FAKEDEF(canon_shoot_menu_active, 1)
+
+
+// *** Probably Not Needed ***
 
 // to hook asserts for debugging
 //DEF(assert_handler,0x00008418) // from DebugAssert, 0x010e100 in RAM code
 
 // TODO sx280 C&P
 //DEF(error_table                             ,0xfc512234) // Found @0xfc1abf24
+
+// Camera does not have canon_raw? No DevelopPipeline.c in sx700v100e
 
 //DEF(raw_buffers_canon_raw                   ,0xfc631864) //xfound near DevelopAddress.c
 //DEF(raw_buffers_jpeg                         ,0xfc631bf4) //xfound near DevelopPipeline.c 0xfc631c00
