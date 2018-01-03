@@ -100,11 +100,11 @@ long get_jogdial_direction(void) {
     old_jogdial=new_jogdial;
     new_jogdial=get_dial_hw_position(DIAL_HW_REAR);
 
+    if (old_jogdial>new_jogdial) return JOGDIAL_RIGHT; 
+    else if (old_jogdial<new_jogdial) return JOGDIAL_LEFT;
 // Reverse directions
-//    if (old_jogdial>new_jogdial) return JOGDIAL_RIGHT; 
-//    else if (old_jogdial<new_jogdial) return JOGDIAL_LEFT;
-    if (old_jogdial>new_jogdial) return JOGDIAL_LEFT; 
-    else if (old_jogdial<new_jogdial) return JOGDIAL_RIGHT;
+//    if (old_jogdial>new_jogdial) return JOGDIAL_LEFT; 
+//    else if (old_jogdial<new_jogdial) return JOGDIAL_RIGHT;
     else return 0;
 }
 

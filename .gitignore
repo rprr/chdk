@@ -21,4 +21,5 @@ PRIMARY.BIN
 *.a
 *.dump
 /platform/sx700hs/sub/100e/bin_compat.h
+/platform/sx700hs/sub/100e/bin_comp_fix.h
 *stubs_auto.S
