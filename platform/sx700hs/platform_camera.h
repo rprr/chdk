@@ -23,15 +23,11 @@
     #define CAM_PROPSET                         6
 
 
-//    #define CAM_DISABLE_RAW_IN_LOW_LIGHT_MODE   1
-//    #define CAM_DISABLE_RAW_IN_HQ_BURST         1
     #define CAM_DISABLE_RAW_IN_HYBRID_AUTO      1 
     #define CAM_DISABLE_RAW_IN_HANDHELD_NIGHT_SCN   1 // probably doesn't make sense
-//    #define CAM_DISABLE_RAW_IN_AUTO             1
-//    #define CAM_DISABLE_RAW_IN_SPORTS           1
 
 // allows CHDK raw exception in sports mode
-    #define CAM_HAS_SPORTS_MODE                 1
+//    #define CAM_HAS_SPORTS_MODE                 1
 
     #define CAM_AV_OVERRIDE_IRIS_FIX            1  // for cameras that require _MoveIrisWithAv function to override Av (for bracketing).
 
@@ -75,8 +71,6 @@
 // minimal recording or not only
     #define CAM_SIMPLE_MOVIE_STATUS 1
 
-
-
     #define CAM_IS_VID_REC_WORKS 1 // Define if the 'is_video_recording()' function works
 
 
@@ -118,15 +112,15 @@
      577, 10000,   26, 10000, 7648, 10000
 
 
-    #define CAM_RAW_ROWPIX                      4768 // 4608
-    #define CAM_RAW_ROWS                        3516 // 3456
+    #define CAM_RAW_ROWPIX                      4768 
+    #define CAM_RAW_ROWS                        3516 
 
     #define CAM_JPEG_WIDTH                      4608
     #define CAM_JPEG_HEIGHT                     3456 
 
 
     #define CAM_ACTIVE_AREA_X1                  96 //?? 
-    #define CAM_ACTIVE_AREA_Y1                  16 //??
+    #define CAM_ACTIVE_AREA_Y1                  18 //??
     #define CAM_ACTIVE_AREA_X2                  4768
     #define CAM_ACTIVE_AREA_Y2                  3516
 
@@ -136,8 +130,8 @@
     #undef  CAM_SENSOR_BITS_PER_PIXEL
     #define CAM_SENSOR_BITS_PER_PIXEL           12
 
+    #undef CAM_EXT_TV_RANGE
     #define CAM_EXT_TV_RANGE                    1
-    //#undef CAM_EXT_TV_RANGE
 
     #undef CAM_EXT_AV_RANGE
     // up to APEX 864 F22.6 at max zoom,  657 F 10 at wide
@@ -146,8 +140,7 @@
     #define CAM_SHOW_OSD_IN_SHOOT_MENU          1
 
     #define DRAW_ON_ACTIVE_BITMAP_BUFFER_ONLY   1           // Draw pixels on active bitmap buffer only.
-   // #undef  CAM_USES_ASPECT_CORRECTION
-    //#define CAM_USES_ASPECT_CORRECTION          1
+
     #undef  CAM_BITMAP_WIDTH
     #undef  CAM_BITMAP_HEIGHT
     #undef  CAM_SCREEN_WIDTH
@@ -197,6 +190,7 @@
     #undef  REMOTE_SYNC_STATUS_LED
     // #define REMOTE_SYNC_STATUS_LED              0xC022C30C  // TODO specifies an LED that turns on while camera waits for USB remote to sync
  
+    // camera crashes if sd override used in AF
     //#define CAM_SD_OVER_IN_AF  1
     #define CAM_SD_OVER_IN_AFL  1
     #define CAM_SD_OVER_IN_MF  1
